@@ -1,0 +1,41 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: webapplication1-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Sa@123456"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - app-network
+
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webapplication1
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Initial Catalog=WebApplication1Db;User Id=sa;Password=Sa@123456;TrustServerCertificate=true;"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - sqlserver
+    volumes:
+      - ./src:/app/src
+    working_dir: /app/src
+    networks:
+      - app-network
+
+volumes:
+  sqlserver_data:
+
+networks:
+  app-network:
+    driver: bridge

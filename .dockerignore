@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+.DS_Store
+Thumbs.db
+.git/
+.gitignore
+*.md
+.env
+.env.local
+node_modules/
