@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.Models;
 
 namespace WebApplication1.Data
 {
@@ -8,5 +9,7 @@ namespace WebApplication1.Data
             : base(options)
         {
         }
+
+        public DbSet<Usuario> Usuarios { get; set; }
     }
 }
