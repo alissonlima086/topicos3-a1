@@ -15,18 +15,9 @@ cd /app/src
 echo "Restaurando dependências..."
 dotnet restore
 
-echo "Limpando migrations antigas..."
+echo "Limpando todas as migrations..."
 MIGRATIONS_DIR="Data/Migrations"
-KEEP=1
-mapfile -t files < <(ls -t "$MIGRATIONS_DIR"/*.cs 2>/dev/null | grep -v "\.Designer\.cs" | grep -v "ModelSnapshot")
-COUNT=${#files[@]}
-if [ "$COUNT" -gt "$KEEP" ]; then
-    for file in "${files[@]:$KEEP}"; do
-        base="${file%.cs}"
-        rm -f "$base.cs" "$base.Designer.cs"
-        echo "Removida migration: $base"
-    done
-fi
+find "$MIGRATIONS_DIR" -name "*.cs" -delete 2>/dev/null || true
 
 echo "Criando/atualizando migrations..."
 dotnet ef migrations add Auto_$(date +%Y%m%d%H%M%S) --output-dir Data/Migrations 2>/dev/null || echo "Nenhuma mudança no modelo, pulando migration."
