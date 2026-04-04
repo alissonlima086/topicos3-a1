@@ -10,6 +10,16 @@ done
 
 echo "SQL Server pronto."
 
+echo "Recriando banco de dados..." # Fazendo limpeza completa do banco para evitar problemas de migrações antigas - manter em ambiente dev
+/opt/mssql-tools18/bin/sqlcmd -S sqlserver -U SA -P "$SA_PASSWORD" -C -Q "
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'WebApplication1Db')
+BEGIN
+    ALTER DATABASE WebApplication1Db SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE WebApplication1Db;
+END
+CREATE DATABASE WebApplication1Db;
+"
+
 cd /app/src
 
 echo "Restaurando dependências..."

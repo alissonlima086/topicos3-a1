@@ -59,6 +59,7 @@ namespace WebApplication1.Controllers
             if (ModelState.IsValid)
             {
                 usuario.Id = Guid.NewGuid();
+                usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
                 _context.Add(usuario);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -98,6 +99,10 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
+                    var usuarioExistente = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+                    if (usuarioExistente == null) return NotFound();
+                    usuario.Senha = usuarioExistente.Senha;
+
                     _context.Update(usuario);
                     await _context.SaveChangesAsync();
                 }
@@ -149,10 +154,43 @@ namespace WebApplication1.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        // GET: Usuario/AlterarSenha/5
+        public async Task<IActionResult> AlterarSenha(Guid? id)
+        {
+            if (id == null) return NotFound();
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null) return NotFound();
+            return View(new AlterarSenhaViewModel { Id = usuario.Id });
+        }
+
+        // POST: Usuario/AlterarSenha/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AlterarSenha(AlterarSenhaViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var usuario = await _context.Usuarios.FindAsync(model.Id);
+            if (usuario == null) return NotFound();
+
+            if (!BCrypt.Net.BCrypt.Verify(model.SenhaAtual, usuario.Senha))
+            {
+                ModelState.AddModelError("SenhaAtual", "Senha atual incorreta.");
+                return View(model);
+            }
+
+            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(model.NovaSenha);
+            _context.Update(usuario);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
 
         private bool UsuarioExists(Guid id)
         {
             return _context.Usuarios.Any(e => e.Id == id);
         }
+
+        
     }
 }

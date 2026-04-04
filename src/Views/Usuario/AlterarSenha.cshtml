@@ -1,0 +1,42 @@
+@model WebApplication1.Models.AlterarSenhaViewModel
+
+@{
+    ViewData["Title"] = "Alterar Senha";
+}
+
+<h1>Alterar Senha</h1>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AlterarSenha">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="SenhaAtual" class="control-label"></label>
+                <input asp-for="SenhaAtual" type="password" class="form-control" />
+                <span asp-validation-for="SenhaAtual" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NovaSenha" class="control-label"></label>
+                <input asp-for="NovaSenha" type="password" class="form-control" />
+                <span asp-validation-for="NovaSenha" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ConfirmarNovaSenha" class="control-label"></label>
+                <input asp-for="ConfirmarNovaSenha" type="password" class="form-control" />
+                <span asp-validation-for="ConfirmarNovaSenha" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-2">
+                <input type="submit" value="Alterar Senha" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
