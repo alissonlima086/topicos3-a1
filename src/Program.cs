@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
+using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,9 @@ builder.Services.AddDbContext<WebApplication1.Data.ApplicationDbContext>(options
         {
             sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
         }));
+
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IEnderecoService, EnderecoService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
