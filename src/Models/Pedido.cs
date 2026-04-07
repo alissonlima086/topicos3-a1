@@ -1,5 +1,6 @@
-using WebApplication1.Models.Enums;
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Models.Enums;
+
 namespace WebApplication1.Models
 {
     public class Pedido
@@ -16,7 +17,7 @@ namespace WebApplication1.Models
         public float TaxaEntrega { get; set; }
 
         [Required]
-        public StatusPedido Status { get; set; }
+        public Status Status { get; set; }
 
         [Required]
         public Guid UsuarioId { get; set; }
@@ -25,7 +26,12 @@ namespace WebApplication1.Models
         {
             Id = Guid.NewGuid();
             DataHora = DateTime.Now;
-            Status = StatusPedido.Pendente;
+            Status = Status.Pendente;
+        }
+
+        public void AtualizarStatus(Status novoStatus)
+        {
+            Status = novoStatus;
         }
     }
 }

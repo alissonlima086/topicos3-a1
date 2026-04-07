@@ -1,36 +1,25 @@
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Models.Enums;
 
 namespace WebApplication1.Models
 {
-
-public class Atendimento
-{
-    [Key]
-    public Guid Id { get; set; }
-
-    public Atendimento()
+    public class Atendimento
     {
-        Id = Guid.NewGuid();
+        [Key]
+        public Guid Id { get; set; }
+
+        [Required]
+        public Status Status { get; set; }
+
+        public Atendimento()
+        {
+            Id = Guid.NewGuid();
+            Status = Status.EmAtendimento;
+        }
+
+        public void Finalizar()
+        {
+            Status = Status.Finalizado;
+        }
     }
-}
-
-public class AtendimentoPresencial : Atendimento
-{
-    [Required]
-    public int NumeroMesa { get; set; }
-}
-
-public class AtendimentoDeliveryProprio : Atendimento
-{
-    [Required]
-    public float TaxaFixa { get; set; }
-}
-
-public class AtendimentoDeliveryApp : Atendimento
-{
-    [Required]
-    public float ComissaoPorcentagem { get; set; }
-
-    public float TaxaAdicional { get; set; }
-}
 }

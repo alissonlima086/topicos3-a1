@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Models.Enums;
 
 namespace WebApplication1.Models
 {
@@ -25,9 +26,18 @@ namespace WebApplication1.Models
         [Required]
         public Guid MesaId { get; set; }
 
+        [Required]
+        public Status Status { get; set; }
+
         public Reserva()
         {
             Id = Guid.NewGuid();
+            Status = Status.Pendente;
+        }
+
+        public void AtualizarStatus(Status novoStatus)
+        {
+            Status = novoStatus;
         }
     }
 }
