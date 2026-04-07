@@ -1,76 +1,65 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.Data;
 using WebApplication1.Models;
 
 namespace WebApplication1.Services
 {
-    public class UsuarioService : IUsuarioService
+    public class UsuarioService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly UserManager<Usuario> _userManager;
 
-        public UsuarioService(ApplicationDbContext context)
+        public UsuarioService(UserManager<Usuario> userManager)
         {
-            _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<Usuario>> ListarTodosAsync()
         {
-            return await _context.Usuarios.ToListAsync();
+            return await _userManager.Users.ToListAsync();
         }
 
         public async Task<Usuario?> BuscarPorIdAsync(Guid id)
         {
-            return await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+            return await _userManager.FindByIdAsync(id.ToString());
         }
 
-        public async Task<Usuario> CriarAsync(Usuario usuario)
+        public async Task<IdentityResult> CriarAsync(Usuario usuario, string senha, string role = "Usuario")
         {
-            usuario.Id = Guid.NewGuid();
-            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
-            _context.Add(usuario);
-            await _context.SaveChangesAsync();
-            return usuario;
+            usuario.UserName = usuario.Email;
+            var resultado = await _userManager.CreateAsync(usuario, senha);
+            if (resultado.Succeeded)
+                await _userManager.AddToRoleAsync(usuario, role);
+            return resultado;
         }
 
-        public async Task<Usuario?> EditarAsync(Guid id, Usuario usuario)
+        public async Task<IdentityResult> EditarAsync(Usuario usuario)
         {
-            var existente = await _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
-            if (existente == null) return null;
-
-            usuario.Senha = existente.Senha;
-
-            _context.Update(usuario);
-            await _context.SaveChangesAsync();
-            return usuario;
+            return await _userManager.UpdateAsync(usuario);
         }
 
-        public async Task<bool> ExcluirAsync(Guid id)
+        public async Task<IdentityResult> ExcluirAsync(Guid id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return false;
-
-            _context.Usuarios.Remove(usuario);
-            await _context.SaveChangesAsync();
-            return true;
+            var usuario = await _userManager.FindByIdAsync(id.ToString());
+            if (usuario == null) return IdentityResult.Failed(new IdentityError { Description = "Usuário não encontrado." });
+            return await _userManager.DeleteAsync(usuario);
         }
 
-        public async Task<bool> AlterarSenhaAsync(Guid id, string senhaAtual, string novaSenha)
+        public async Task<IdentityResult> AlterarSenhaAsync(Guid id, string senhaAtual, string novaSenha)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return false;
+            var usuario = await _userManager.FindByIdAsync(id.ToString());
+            if (usuario == null) return IdentityResult.Failed(new IdentityError { Description = "Usuário não encontrado." });
+            return await _userManager.ChangePasswordAsync(usuario, senhaAtual, novaSenha);
+        }
 
-            if (!BCrypt.Net.BCrypt.Verify(senhaAtual, usuario.Senha))
-                return false;
-
-            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(novaSenha);
-            _context.Update(usuario);
-            await _context.SaveChangesAsync();
-            return true;
+        public async Task<string?> ObterRoleAsync(Usuario usuario)
+        {
+            var roles = await _userManager.GetRolesAsync(usuario);
+            return roles.FirstOrDefault();
         }
 
         public bool Existe(Guid id)
         {
-            return _context.Usuarios.Any(u => u.Id == id);
+            return _userManager.Users.Any(u => u.Id == id);
         }
     }
 }

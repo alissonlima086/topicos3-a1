@@ -4,7 +4,7 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Services
 {
-    public class EnderecoService : IEnderecoService
+    public class EnderecoService
     {
         private readonly ApplicationDbContext _context;
 
@@ -25,7 +25,7 @@ namespace WebApplication1.Services
 
         public async Task<(Endereco? endereco, string? erro)> CriarAsync(Endereco endereco)
         {
-            var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.Id == endereco.UsuarioId);
+            var usuarioExiste = await _context.Users.AnyAsync(u => u.Id == endereco.UsuarioId);
             if (!usuarioExiste)
                 return (null, "Usuário não encontrado.");
 
@@ -38,7 +38,6 @@ namespace WebApplication1.Services
         public async Task<Endereco?> EditarAsync(Guid id, Endereco endereco)
         {
             if (!Existe(id)) return null;
-
             _context.Update(endereco);
             await _context.SaveChangesAsync();
             return endereco;
@@ -48,7 +47,6 @@ namespace WebApplication1.Services
         {
             var endereco = await _context.Enderecos.FindAsync(id);
             if (endereco == null) return false;
-
             _context.Enderecos.Remove(endereco);
             await _context.SaveChangesAsync();
             return true;
@@ -56,12 +54,12 @@ namespace WebApplication1.Services
 
         public async Task<Usuario?> BuscarUsuarioPorCpfAsync(string cpf)
         {
-            return await _context.Usuarios.FirstOrDefaultAsync(u => u.Cpf == cpf);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Cpf == cpf);
         }
 
         public async Task<Usuario?> BuscarUsuarioPorIdAsync(Guid id)
         {
-            return await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public bool Existe(Guid id)

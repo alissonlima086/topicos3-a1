@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
@@ -5,39 +6,31 @@ using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     public class EnderecoController : Controller
     {
-        private readonly IEnderecoService _enderecoService;
+        private readonly EnderecoService _enderecoService;
 
-        public EnderecoController(IEnderecoService enderecoService)
+        public EnderecoController(EnderecoService enderecoService)
         {
             _enderecoService = enderecoService;
         }
 
-        // GET: Endereco
         public async Task<IActionResult> Index()
         {
             return View(await _enderecoService.ListarTodosAsync());
         }
 
-        // GET: Endereco/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null) return NotFound();
-
             var endereco = await _enderecoService.BuscarPorIdAsync(id.Value);
             if (endereco == null) return NotFound();
-
             return View(endereco);
         }
 
-        // GET: Endereco/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
-        // POST: Endereco/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId")] Endereco endereco)
@@ -55,18 +48,14 @@ namespace WebApplication1.Controllers
             return View(endereco);
         }
 
-        // GET: Endereco/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null) return NotFound();
-
             var endereco = await _enderecoService.BuscarPorIdAsync(id.Value);
             if (endereco == null) return NotFound();
-
             return View(endereco);
         }
 
-        // POST: Endereco/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,Local,Bairro,Cep,Complemento")] Endereco endereco)
@@ -90,20 +79,18 @@ namespace WebApplication1.Controllers
             return View(endereco);
         }
 
-        // GET: Endereco/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null) return NotFound();
-
             var endereco = await _enderecoService.BuscarPorIdAsync(id.Value);
             if (endereco == null) return NotFound();
-
             return View(endereco);
         }
 
-        // POST: Endereco/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             await _enderecoService.ExcluirAsync(id);
@@ -114,8 +101,7 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> BuscarUsuarioPorCpf(string cpf)
         {
             var usuario = await _enderecoService.BuscarUsuarioPorCpfAsync(cpf);
-            if (usuario == null)
-                return Json(new { encontrado = false });
+            if (usuario == null) return Json(new { encontrado = false });
             return Json(new { encontrado = true, id = usuario.Id, nome = usuario.Nome });
         }
 
@@ -123,8 +109,7 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> BuscarUsuarioPorId(Guid id)
         {
             var usuario = await _enderecoService.BuscarUsuarioPorIdAsync(id);
-            if (usuario == null)
-                return Json(new { encontrado = false });
+            if (usuario == null) return Json(new { encontrado = false });
             return Json(new { encontrado = true, id = usuario.Id, nome = usuario.Nome });
         }
     }

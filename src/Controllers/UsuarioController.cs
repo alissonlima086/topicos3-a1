@@ -1,111 +1,97 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     public class UsuarioController : Controller
     {
-        private readonly IUsuarioService _usuarioService;
+        private readonly UsuarioService _usuarioService;
 
-        public UsuarioController(IUsuarioService usuarioService)
+        public UsuarioController(UsuarioService usuarioService)
         {
             _usuarioService = usuarioService;
         }
 
-        // GET: Usuario
+        // GET: Usuario — apenas Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             return View(await _usuarioService.ListarTodosAsync());
         }
 
         // GET: Usuario/Details/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null) return NotFound();
-
             var usuario = await _usuarioService.BuscarPorIdAsync(id.Value);
             if (usuario == null) return NotFound();
-
             return View(usuario);
         }
 
-        // GET: Usuario/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Usuario/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Email,Senha,Cpf,DataNascimento,Funcao")] Usuario usuario)
-        {
-            if (ModelState.IsValid)
-            {
-                await _usuarioService.CriarAsync(usuario);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(usuario);
-        }
-
-        // GET: Usuario/Edit/5
+        // GET: Usuario/Edit/5 — Admin ou o próprio usuário
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null) return NotFound();
-
             var usuario = await _usuarioService.BuscarPorIdAsync(id.Value);
             if (usuario == null) return NotFound();
-
             return View(usuario);
         }
 
         // POST: Usuario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Nome,Email,Senha,Cpf,DataNascimento,Funcao")] Usuario usuario)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Nome,Cpf,DataNascimento,Email")] Usuario usuario)
         {
             if (id != usuario.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
-                try
+                var existente = await _usuarioService.BuscarPorIdAsync(id);
+                if (existente == null) return NotFound();
+
+                existente.Nome = usuario.Nome;
+                existente.Cpf = usuario.Cpf;
+                existente.DataNascimento = usuario.DataNascimento;
+                existente.Email = usuario.Email;
+                existente.UserName = usuario.Email;
+
+                var resultado = await _usuarioService.EditarAsync(existente);
+                if (!resultado.Succeeded)
                 {
-                    var resultado = await _usuarioService.EditarAsync(id, usuario);
-                    if (resultado == null) return NotFound();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_usuarioService.Existe(usuario.Id)) return NotFound();
-                    throw;
+                    foreach (var erro in resultado.Errors)
+                        ModelState.AddModelError(string.Empty, erro.Description);
+                    return View(usuario);
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(usuario);
         }
 
-        // GET: Usuario/Delete/5
+        // GET: Usuario/Delete/5 — apenas Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null) return NotFound();
-
             var usuario = await _usuarioService.BuscarPorIdAsync(id.Value);
             if (usuario == null) return NotFound();
-
             return View(usuario);
         }
 
         // POST: Usuario/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             await _usuarioService.ExcluirAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Usuario/AlterarSenha/5
+        // GET: Usuario/AlterarSenha
         public async Task<IActionResult> AlterarSenha(Guid? id)
         {
             if (id == null) return NotFound();
@@ -114,18 +100,18 @@ namespace WebApplication1.Controllers
             return View(new AlterarSenhaViewModel { Id = usuario.Id });
         }
 
-        // POST: Usuario/AlterarSenha/5
+        // POST: Usuario/AlterarSenha
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AlterarSenha(AlterarSenhaViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var sucesso = await _usuarioService.AlterarSenhaAsync(model.Id, model.SenhaAtual, model.NovaSenha);
-
-            if (!sucesso)
+            var resultado = await _usuarioService.AlterarSenhaAsync(model.Id, model.SenhaAtual, model.NovaSenha);
+            if (!resultado.Succeeded)
             {
-                ModelState.AddModelError("SenhaAtual", "Senha atual incorreta.");
+                foreach (var erro in resultado.Errors)
+                    ModelState.AddModelError(string.Empty, erro.Description);
                 return View(model);
             }
 
