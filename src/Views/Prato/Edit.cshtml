@@ -1,0 +1,98 @@
+@model WebApplication1.Models.ViewModels.PratoEditViewModel
+
+@{
+    ViewData["Title"] = "Editar Prato";
+}
+
+<h1>Editar Prato</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Dados do Prato</h5>
+
+                    <div class="form-group mb-2">
+                        <label asp-for="Nome" class="control-label"></label>
+                        <input asp-for="Nome" class="form-control" />
+                        <span asp-validation-for="Nome" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label asp-for="Descricao" class="control-label"></label>
+                        <textarea asp-for="Descricao" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Descricao" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label asp-for="PrecoBase" class="control-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input asp-for="PrecoBase" class="form-control" />
+                        </div>
+                        <span asp-validation-for="PrecoBase" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group form-check mb-3">
+                        <input asp-for="Ativo" class="form-check-input" />
+                        <label asp-for="Ativo" class="form-check-label"></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Ingredientes</h5>
+                        <a asp-controller="Ingrediente" asp-action="Create" class="btn btn-sm btn-outline-success" target="_blank">
+                            + Novo Ingrediente
+                        </a>
+                    </div>
+
+                    @if (Model.Ingredientes.Any())
+                    {
+                        <div class="border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                            @for (int i = 0; i < Model.Ingredientes.Count; i++)
+                            {
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           name="ingredientesSelecionados"
+                                           value="@Model.Ingredientes[i].Id"
+                                           class="form-check-input"
+                                           id="ing_@Model.Ingredientes[i].Id"
+                                           @(Model.Ingredientes[i].Selecionado ? "checked" : "") />
+                                    <label class="form-check-label" for="ing_@Model.Ingredientes[i].Id">
+                                        <strong>@Model.Ingredientes[i].Nome</strong>
+                                        @if (!string.IsNullOrEmpty(Model.Ingredientes[i].Descricao))
+                                        {
+                                            <small class="text-muted"> — @Model.Ingredientes[i].Descricao</small>
+                                        }
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            Nenhum ingrediente cadastrado ainda.
+                            <a asp-controller="Ingrediente" asp-action="Create">Cadastrar agora</a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Salvar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

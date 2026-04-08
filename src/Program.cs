@@ -31,6 +31,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<EnderecoService>();
+builder.Services.AddScoped<IItemPedidoService, ItemPedidoService>();
+builder.Services.AddScoped<IPratoService, PratoService>();
+builder.Services.AddScoped<IIngredienteService, IngredienteService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

@@ -29,6 +29,9 @@ namespace WebApplication1.Models
         [Required]
         public Status Status { get; set; }
 
+        public Usuario? Usuario { get; set; }
+        public Mesa? Mesa { get; set; }
+
         public Reserva()
         {
             Id = Guid.NewGuid();

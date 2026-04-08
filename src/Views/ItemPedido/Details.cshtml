@@ -1,0 +1,35 @@
+@model WebApplication1.Models.ItemPedido
+
+@{
+    ViewData["Title"] = "Detalhes do Item";
+}
+
+<h1>Detalhes do Item</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.NomePrato)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(m => m.NomePrato)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Quantidade)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(m => m.Quantidade)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.PrecoUnitario)</dt>
+        <dd class="col-sm-10">R$ @Model.PrecoUnitario.ToString("F2")</dd>
+
+        <dt class="col-sm-2">Subtotal</dt>
+        <dd class="col-sm-10">R$ @((Model.PrecoUnitario * Model.Quantidade).ToString("F2"))</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.FoiSugestao)</dt>
+        <dd class="col-sm-10">@(Model.FoiSugestao ? "Sim" : "Não")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Observacao)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(m => m.Observacao)</dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Editar</a> |
+    <a asp-controller="Pedido" asp-action="Details" asp-route-id="@Model.PedidoId">Voltar ao Pedido</a>
+</div>

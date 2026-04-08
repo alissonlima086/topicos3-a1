@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260407225701_Auto_20260407225647")]
-    partial class Auto_20260407225647
+    [Migration("20260408233456_Auto_20260408233442")]
+    partial class Auto_20260408233442
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -156,6 +156,34 @@ namespace WebApplication1.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.Atendimento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Atendimentos");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Cardapio", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cardapios");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Endereco", b =>
                 {
                     b.Property<Guid>("Id")
@@ -181,11 +209,192 @@ namespace WebApplication1.Data.Migrations
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("UsuarioId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UsuarioId");
 
+                    b.HasIndex("UsuarioId1");
+
                     b.ToTable("Enderecos");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Ingrediente", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Ingredientes");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.ItemPedido", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("FoiSugestao")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NomePrato")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Observacao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("PedidoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("PrecoUnitario")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PedidoId");
+
+                    b.ToTable("ItensPedido");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Mesa", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Capacidade")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Disponivel")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Mesas");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Pedido", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DataHora")
+                        .HasColumnType("datetime2");
+
+                    b.Property<float>("PrecoTotal")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<float>("TaxaEntrega")
+                        .HasColumnType("real");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Pedidos");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Prato", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("PrecoBase")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Pratos");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.PratoIngrediente", b =>
+                {
+                    b.Property<Guid>("PratoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("IngredienteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("PratoId", "IngredienteId");
+
+                    b.HasIndex("IngredienteId");
+
+                    b.ToTable("PratoIngredientes");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Reserva", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("HorarioFim")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("HorarioInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MesaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("NumeroPessoas")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MesaId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Reservas");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Usuario", b =>
@@ -319,13 +528,92 @@ namespace WebApplication1.Data.Migrations
 
             modelBuilder.Entity("WebApplication1.Models.Endereco", b =>
                 {
-                    b.HasOne("WebApplication1.Models.Usuario", "Usuario")
+                    b.HasOne("WebApplication1.Models.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("WebApplication1.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId1");
+
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.ItemPedido", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Pedido", "Pedido")
+                        .WithMany("Itens")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Pedido", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.PratoIngrediente", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Ingrediente", "Ingrediente")
+                        .WithMany("PratoIngredientes")
+                        .HasForeignKey("IngredienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebApplication1.Models.Prato", "Prato")
+                        .WithMany("PratoIngredientes")
+                        .HasForeignKey("PratoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingrediente");
+
+                    b.Navigation("Prato");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Reserva", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Mesa", "Mesa")
+                        .WithMany()
+                        .HasForeignKey("MesaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApplication1.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Mesa");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Ingrediente", b =>
+                {
+                    b.Navigation("PratoIngredientes");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Pedido", b =>
+                {
+                    b.Navigation("Itens");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Prato", b =>
+                {
+                    b.Navigation("PratoIngredientes");
                 });
 #pragma warning restore 612, 618
         }

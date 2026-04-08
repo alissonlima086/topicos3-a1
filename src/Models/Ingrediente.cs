@@ -12,6 +12,8 @@ namespace WebApplication1.Models
 
     public string Descricao { get; set; } = string.Empty;
 
+    public ICollection<PratoIngrediente> PratoIngredientes { get; set; } = new List<PratoIngrediente>();
+
     public Ingrediente()
     {
         Id = Guid.NewGuid();

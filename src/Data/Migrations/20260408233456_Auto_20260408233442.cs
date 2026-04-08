@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Auto_20260407225647 : Migration
+    public partial class Auto_20260408233442 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,6 +51,72 @@ namespace WebApplication1.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Atendimentos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Atendimentos", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Cardapios",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Data = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Cardapios", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Ingredientes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Descricao = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ingredientes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Mesas",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Numero = table.Column<int>(type: "int", nullable: false),
+                    Capacidade = table.Column<int>(type: "int", nullable: false),
+                    Disponivel = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Mesas", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Pratos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Descricao = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PrecoBase = table.Column<float>(type: "real", nullable: false),
+                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pratos", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -168,7 +234,8 @@ namespace WebApplication1.Data.Migrations
                     Bairro = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Cep = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Complemento = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UsuarioId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -177,6 +244,110 @@ namespace WebApplication1.Data.Migrations
                         name: "FK_Enderecos_AspNetUsers_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Enderecos_AspNetUsers_UsuarioId1",
+                        column: x => x.UsuarioId1,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Pedidos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DataHora = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PrecoTotal = table.Column<float>(type: "real", nullable: false),
+                    TaxaEntrega = table.Column<float>(type: "real", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pedidos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Pedidos_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reservas",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Data = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    HorarioInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    HorarioFim = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    NumeroPessoas = table.Column<int>(type: "int", nullable: false),
+                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MesaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reservas_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Reservas_Mesas_MesaId",
+                        column: x => x.MesaId,
+                        principalTable: "Mesas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PratoIngredientes",
+                columns: table => new
+                {
+                    PratoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IngredienteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PratoIngredientes", x => new { x.PratoId, x.IngredienteId });
+                    table.ForeignKey(
+                        name: "FK_PratoIngredientes_Ingredientes_IngredienteId",
+                        column: x => x.IngredienteId,
+                        principalTable: "Ingredientes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PratoIngredientes_Pratos_PratoId",
+                        column: x => x.PratoId,
+                        principalTable: "Pratos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItensPedido",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantidade = table.Column<int>(type: "int", nullable: false),
+                    PrecoUnitario = table.Column<float>(type: "real", nullable: false),
+                    NomePrato = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FoiSugestao = table.Column<bool>(type: "bit", nullable: false),
+                    Observacao = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PedidoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItensPedido", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ItensPedido_Pedidos_PedidoId",
+                        column: x => x.PedidoId,
+                        principalTable: "Pedidos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -224,6 +395,36 @@ namespace WebApplication1.Data.Migrations
                 name: "IX_Enderecos_UsuarioId",
                 table: "Enderecos",
                 column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Enderecos_UsuarioId1",
+                table: "Enderecos",
+                column: "UsuarioId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItensPedido_PedidoId",
+                table: "ItensPedido",
+                column: "PedidoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pedidos_UsuarioId",
+                table: "Pedidos",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PratoIngredientes_IngredienteId",
+                table: "PratoIngredientes",
+                column: "IngredienteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservas_MesaId",
+                table: "Reservas",
+                column: "MesaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reservas_UsuarioId",
+                table: "Reservas",
+                column: "UsuarioId");
         }
 
         /// <inheritdoc />
@@ -245,10 +446,37 @@ namespace WebApplication1.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Atendimentos");
+
+            migrationBuilder.DropTable(
+                name: "Cardapios");
+
+            migrationBuilder.DropTable(
                 name: "Enderecos");
 
             migrationBuilder.DropTable(
+                name: "ItensPedido");
+
+            migrationBuilder.DropTable(
+                name: "PratoIngredientes");
+
+            migrationBuilder.DropTable(
+                name: "Reservas");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Pedidos");
+
+            migrationBuilder.DropTable(
+                name: "Ingredientes");
+
+            migrationBuilder.DropTable(
+                name: "Pratos");
+
+            migrationBuilder.DropTable(
+                name: "Mesas");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

@@ -24,6 +24,8 @@ namespace WebApplication1.Models
     [Required]
     public Guid PedidoId { get; set; }
 
+    public Pedido? Pedido { get; set; }
+
     public ItemPedido()
     {
         Id = Guid.NewGuid();

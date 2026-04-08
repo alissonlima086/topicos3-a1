@@ -1,0 +1,55 @@
+@model WebApplication1.Models.Prato
+
+@{
+    ViewData["Title"] = "Detalhes do Prato";
+}
+
+<h1>Detalhes do Prato</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Nome)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(m => m.Nome)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Descricao)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(m => m.Descricao)</dd>
+
+        <dt class="col-sm-2">Preço Base</dt>
+        <dd class="col-sm-10">R$ @Model.PrecoBase.ToString("F2")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Ativo)</dt>
+        <dd class="col-sm-10">
+            @if (Model.Ativo)
+            {
+                <span class="badge bg-success">Ativo</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Inativo</span>
+            }
+        </dd>
+
+        <dt class="col-sm-2">Ingredientes</dt>
+        <dd class="col-sm-10">
+            @if (Model.PratoIngredientes != null && Model.PratoIngredientes.Any())
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var pi in Model.PratoIngredientes)
+                    {
+                        <li><span class="badge bg-light text-dark border">@pi.Ingrediente.Nome</span></li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span class="text-muted">Nenhum ingrediente associado</span>
+            }
+        </dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Editar</a> |
+    <a asp-action="Index">Voltar</a>
+</div>
