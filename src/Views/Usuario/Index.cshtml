@@ -7,10 +7,10 @@
 <h1>Usuários</h1>
 
 <p>
-    <a asp-action="Create">Criar Novo</a>
+    <a asp-action="Create" class="btn btn-primary btn-sm">+ Criar Novo</a>
 </p>
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Id</th>
@@ -22,20 +22,22 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>@item.Id</td>
-            <td>@item.Nome</td>
-            <td>@item.Email</td>
-            <td>@item.Cpf</td>
-            <td>@item.DataNascimento.ToString("dd/MM/yyyy")</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
-                <a asp-action="AlterarSenha" asp-route-id="@item.Id">Senha</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Nome</td>
+                <td>@item.Email</td>
+                <td>@item.Cpf</td>
+                <td>@item.DataNascimento.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <a asp-action="AlterarSenha" asp-route-id="@item.Id">Senha</a> |
+                    <a asp-controller="Endereco" asp-action="Index" asp-route-usuarioId="@item.Id">Endereços</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

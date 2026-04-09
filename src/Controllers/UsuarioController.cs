@@ -15,14 +15,12 @@ namespace WebApplication1.Controllers
             _usuarioService = usuarioService;
         }
 
-        // GET: Usuario — apenas Admin
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             return View(await _usuarioService.ListarTodosAsync());
         }
 
-        // GET: Usuario/Details/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(Guid? id)
         {
@@ -32,7 +30,35 @@ namespace WebApplication1.Controllers
             return View(usuario);
         }
 
-        // GET: Usuario/Edit/5 — Admin ou o próprio usuário
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create() => View(new CadastroUsuarioViewModel());
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(CadastroUsuarioViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var usuario = new Usuario
+            {
+                Nome = model.Nome,
+                Email = model.Email,
+                Cpf = model.Cpf,
+                DataNascimento = model.DataNascimento
+            };
+
+            var resultado = await _usuarioService.CriarAsync(usuario, model.Senha);
+            if (!resultado.Succeeded)
+            {
+                foreach (var erro in resultado.Errors)
+                    ModelState.AddModelError(string.Empty, erro.Description);
+                return View(model);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null) return NotFound();
@@ -41,7 +67,6 @@ namespace WebApplication1.Controllers
             return View(usuario);
         }
 
-        // POST: Usuario/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,Nome,Cpf,DataNascimento,Email")] Usuario usuario)
@@ -71,7 +96,6 @@ namespace WebApplication1.Controllers
             return View(usuario);
         }
 
-        // GET: Usuario/Delete/5 — apenas Admin
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid? id)
         {
@@ -81,7 +105,6 @@ namespace WebApplication1.Controllers
             return View(usuario);
         }
 
-        // POST: Usuario/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -91,7 +114,6 @@ namespace WebApplication1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Usuario/AlterarSenha
         public async Task<IActionResult> AlterarSenha(Guid? id)
         {
             if (id == null) return NotFound();
@@ -100,7 +122,6 @@ namespace WebApplication1.Controllers
             return View(new AlterarSenhaViewModel { Id = usuario.Id });
         }
 
-        // POST: Usuario/AlterarSenha
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AlterarSenha(AlterarSenhaViewModel model)

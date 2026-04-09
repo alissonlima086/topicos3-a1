@@ -15,12 +15,21 @@ namespace WebApplication1.Services
 
         public async Task<IEnumerable<Endereco>> ListarTodosAsync()
         {
-            return await _context.Enderecos.ToListAsync();
+            return await _context.Enderecos.Include(e => e.Usuario).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Endereco>> ListarPorUsuarioAsync(Guid usuarioId)
+        {
+            return await _context.Enderecos
+                .Where(e => e.UsuarioId == usuarioId)
+                .ToListAsync();
         }
 
         public async Task<Endereco?> BuscarPorIdAsync(Guid id)
         {
-            return await _context.Enderecos.FirstOrDefaultAsync(e => e.Id == id);
+            return await _context.Enderecos
+                .Include(e => e.Usuario)
+                .FirstOrDefaultAsync(e => e.Id == id);
         }
 
         public async Task<(Endereco? endereco, string? erro)> CriarAsync(Endereco endereco)

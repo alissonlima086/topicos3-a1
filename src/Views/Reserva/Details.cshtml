@@ -1,0 +1,38 @@
+@model WebApplication1.Models.Reserva
+
+@{
+    ViewData["Title"] = "Detalhes da Reserva";
+}
+
+<h1>Detalhes da Reserva</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Data)</dt>
+        <dd class="col-sm-10">@Model.Data.ToString("dd/MM/yyyy")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.HorarioInicio)</dt>
+        <dd class="col-sm-10">@Model.HorarioInicio.ToString("HH:mm")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.HorarioFim)</dt>
+        <dd class="col-sm-10">@Model.HorarioFim.ToString("HH:mm")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.NumeroPessoas)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(m => m.NumeroPessoas)</dd>
+
+        <dt class="col-sm-2">Mesa</dt>
+        <dd class="col-sm-10">@Model.MesaId</dd>
+
+        <dt class="col-sm-2">Usuário</dt>
+        <dd class="col-sm-10">@Model.UsuarioId</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Status)</dt>
+        <dd class="col-sm-10"><span class="badge bg-secondary">@Model.Status</span></dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Editar</a> |
+    <a asp-action="Index">Voltar</a>
+</div>

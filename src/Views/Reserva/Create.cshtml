@@ -1,0 +1,102 @@
+@model WebApplication1.Models.ReservaCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Reserva";
+}
+
+<h1>Nova Reserva</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Data" class="control-label"></label>
+                <input asp-for="Data" type="date" class="form-control" />
+                <span asp-validation-for="Data" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="HorarioInicio" class="control-label"></label>
+                <input asp-for="HorarioInicio" type="datetime-local" class="form-control" />
+                <span asp-validation-for="HorarioInicio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="HorarioFim" class="control-label"></label>
+                <input asp-for="HorarioFim" type="datetime-local" class="form-control" />
+                <span asp-validation-for="HorarioFim" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="NumeroPessoas" class="control-label"></label>
+                <input asp-for="NumeroPessoas" class="form-control" />
+                <span asp-validation-for="NumeroPessoas" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="MesaId" class="control-label">Mesa</label>
+                <select asp-for="MesaId" class="form-select">
+                    <option value="">-- Selecione uma mesa --</option>
+                    @foreach (var mesa in Model.Mesas)
+                    {
+                        <option value="@mesa.Id">Mesa @mesa.Numero (capacidade: @mesa.Capacidade)</option>
+                    }
+                </select>
+                <span asp-validation-for="MesaId" class="text-danger"></span>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Usuário</div>
+                <div class="card-body">
+                    <div class="form-group mb-2">
+                        <label asp-for="UsuarioId" class="control-label">ID do Usuário</label>
+                        <input asp-for="UsuarioId" class="form-control" placeholder="Cole o GUID do usuário (opcional)" />
+                        <span asp-validation-for="UsuarioId" class="text-danger"></span>
+                    </div>
+                    <div class="text-center text-muted mb-2">— ou —</div>
+                    <div class="form-group">
+                        <label asp-for="UsuarioCpf" class="control-label">CPF do Usuário</label>
+                        <div class="input-group">
+                            <input asp-for="UsuarioCpf" class="form-control" placeholder="Digite o CPF" id="CpfBusca" />
+                            <button type="button" class="btn btn-secondary" onclick="buscarUsuario()">Buscar</button>
+                        </div>
+                        <span id="usuarioEncontrado" class="text-success"></span>
+                        <span asp-validation-for="UsuarioCpf" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Criar Reserva" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Voltar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        async function buscarUsuario() {
+            const cpf = document.getElementById('CpfBusca').value;
+            if (!cpf) return;
+            const response = await fetch(`/Reserva/BuscarUsuarioPorCpf?cpf=${cpf}`);
+            const data = await response.json();
+            const span = document.getElementById('usuarioEncontrado');
+            if (data.encontrado) {
+                span.textContent = `✓ Usuário: ${data.nome}`;
+                span.className = 'text-success';
+                // Limpa o UsuarioId para não conflitar (CPF tem prioridade quando ID está vazio)
+                const idInput = document.getElementById('UsuarioId');
+                if (!idInput.value) {
+                    // deixa o CPF resolver no server
+                }
+            } else {
+                span.textContent = 'Usuário não encontrado.';
+                span.className = 'text-danger';
+            }
+        }
+    </script>
+}

@@ -1,90 +1,48 @@
 @model WebApplication1.Models.Endereco
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Endereço";
 }
 
-<h1>Edit</h1>
-
-<h4>Endereco</h4>
+<h1>Editar Endereço</h1>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
+            <input type="hidden" asp-for="UsuarioId" />
+
+            <div class="form-group mb-2">
                 <label asp-for="Local" class="control-label"></label>
                 <input asp-for="Local" class="form-control" />
                 <span asp-validation-for="Local" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-2">
                 <label asp-for="Bairro" class="control-label"></label>
                 <input asp-for="Bairro" class="form-control" />
                 <span asp-validation-for="Bairro" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-2">
                 <label asp-for="Cep" class="control-label"></label>
                 <input asp-for="Cep" class="form-control" />
                 <span asp-validation-for="Cep" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Complemento" class="control-label"></label>
                 <input asp-for="Complemento" class="form-control" />
                 <span asp-validation-for="Complemento" class="text-danger"></span>
             </div>
-            <input type="hidden" asp-for="UsuarioId" id="UsuarioId" />
-            <div class="form-group">
-                <label class="control-label">CPF do Usuário</label>
-                <div class="input-group">
-                    <input type="text" id="CpfBusca" class="form-control" placeholder="Digite o CPF" />
-                    <button type="button" class="btn btn-secondary" onclick="buscarUsuario()">Buscar</button>
-                </div>
-                <span id="usuarioEncontrado" class="text-success"></span>
-                <span id="usuarioNaoEncontrado" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Salvar" class="btn btn-primary" />
+                <a asp-action="Index" asp-route-usuarioId="@Model.UsuarioId" class="btn btn-secondary ms-2">Voltar</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script>
-        async function buscarUsuario() {
-            const cpf = document.getElementById('CpfBusca').value;
-            const response = await fetch(`/Endereco/BuscarUsuarioPorCpf?cpf=${cpf}`);
-            const data = await response.json();
-
-            if (data.encontrado) {
-                document.getElementById('UsuarioId').value = data.id;
-                document.getElementById('usuarioEncontrado').textContent = `Usuário: ${data.nome}`;
-                document.getElementById('usuarioNaoEncontrado').textContent = '';
-            } else {
-                document.getElementById('UsuarioId').value = '';
-                document.getElementById('usuarioEncontrado').textContent = '';
-                document.getElementById('usuarioNaoEncontrado').textContent = 'Usuário não encontrado.';
-            }
-        }
-
-        // Preenche o nome do usuário atual ao carregar a página
-        window.onload = async function() {
-            const usuarioId = document.getElementById('UsuarioId').value;
-            if (usuarioId) {
-                const response = await fetch(`/Endereco/BuscarUsuarioPorId?id=${usuarioId}`);
-                const data = await response.json();
-                if (data.encontrado) {
-                    document.getElementById('usuarioEncontrado').textContent = `Usuário atual: ${data.nome}`;
-                }
-            }
-        }
-    </script>
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
