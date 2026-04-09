@@ -1,0 +1,85 @@
+@model WebApplication1.Models.ViewModels.ItemPedidoCreateViewModel
+
+@{
+    ViewData["Title"] = "Adicionar Item ao Pedido";
+}
+
+<h1>Adicionar Item ao Pedido</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="PedidoId" />
+
+            <div class="form-group mb-3">
+                <label asp-for="PratoSelecionadoId" class="control-label">Prato</label>
+                @if (Model.PratosDisponiveis.Any())
+                {
+                    <select asp-for="PratoSelecionadoId" class="form-control" id="pratosSelect">
+                        <option value="">-- Selecione um prato --</option>
+                        @foreach (var prato in Model.PratosDisponiveis)
+                        {
+                            <option value="@prato.Id" data-preco="@prato.PrecoBase.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)">
+                                @prato.Nome — R$ @prato.PrecoBase.ToString("F2")
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="PratoSelecionadoId" class="text-danger"></span>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        Nenhum prato ativo disponível.
+                        <a asp-controller="Prato" asp-action="Create">Cadastrar prato</a>
+                    </div>
+                }
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Quantidade" class="control-label"></label>
+                <input asp-for="Quantidade" class="form-control" type="number" min="1" value="1" />
+                <span asp-validation-for="Quantidade" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PrecoUnitario" class="control-label">Preço Unitário (R$)</label>
+                <input asp-for="PrecoUnitario" class="form-control" id="precoUnitario" />
+                <small class="text-muted">Preenchido automaticamente ao selecionar o prato. Pode ser ajustado.</small>
+                <span asp-validation-for="PrecoUnitario" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3 form-check">
+                <input asp-for="FoiSugestao" class="form-check-input" />
+                <label asp-for="FoiSugestao" class="form-check-label">Foi sugestão do chef</label>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Observacao" class="control-label"></label>
+                <input asp-for="Observacao" class="form-control" placeholder="Ex: sem cebola, bem passado..." />
+                <span asp-validation-for="Observacao" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Adicionar Item" class="btn btn-primary" />
+                <a asp-controller="Pedido" asp-action="Details" asp-route-id="@Model.PedidoId" class="btn btn-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        document.getElementById('pratosSelect')?.addEventListener('change', function () {
+            const selected = this.options[this.selectedIndex];
+            const preco = selected.getAttribute('data-preco');
+            if (preco) {
+                document.getElementById('precoUnitario').value = preco;
+            } else {
+                document.getElementById('precoUnitario').value = '';
+            }
+        });
+    </script>
+}

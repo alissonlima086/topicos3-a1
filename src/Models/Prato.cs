@@ -18,6 +18,8 @@ namespace WebApplication1.Models
     [Required]
     public bool Ativo { get; set; }
 
+    public ICollection<PratoIngrediente> PratoIngredientes { get; set; } = new List<PratoIngrediente>();
+
     public Prato()
     {
         Id = Guid.NewGuid();

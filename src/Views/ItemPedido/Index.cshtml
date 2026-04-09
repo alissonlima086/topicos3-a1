@@ -1,0 +1,48 @@
+@model IEnumerable<WebApplication1.Models.ItemPedido>
+
+@{
+    ViewData["Title"] = "Itens do Pedido";
+    var pedidoId = ViewBag.PedidoId as Guid?;
+}
+
+<h1>Itens do Pedido</h1>
+
+<p>
+    <a asp-action="Create" asp-route-pedidoId="@pedidoId" class="btn btn-primary">Adicionar Item</a>
+    @if (pedidoId != null)
+    {
+        <a asp-controller="Pedido" asp-action="Details" asp-route-id="@pedidoId" class="btn btn-secondary ms-2">Ver Pedido</a>
+    }
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Prato</th>
+            <th>Qtd</th>
+            <th>Preço Unit.</th>
+            <th>Subtotal</th>
+            <th>Sugestão</th>
+            <th>Observação</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.NomePrato</td>
+                <td>@item.Quantidade</td>
+                <td>R$ @item.PrecoUnitario.ToString("F2")</td>
+                <td>R$ @((item.PrecoUnitario * item.Quantidade).ToString("F2"))</td>
+                <td>@(item.FoiSugestao ? "Sim" : "Não")</td>
+                <td>@item.Observacao</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Remover</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

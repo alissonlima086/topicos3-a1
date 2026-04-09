@@ -1,0 +1,52 @@
+@model IEnumerable<WebApplication1.Models.Prato>
+
+@{
+    ViewData["Title"] = "Pratos";
+}
+
+<h1>Pratos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Novo Prato</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Preço Base</th>
+            <th>Ativo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nome</td>
+                <td>@item.Descricao</td>
+                <td>R$ @item.PrecoBase.ToString("F2")</td>
+                <td>
+                    @if (item.Ativo)
+                    {
+                        <span class="badge bg-success">Ativo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inativo</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <form asp-action="ToggleAtivo" asp-route-id="@item.Id" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link p-0">@(item.Ativo ? "Desativar" : "Ativar")</button>
+                    </form> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

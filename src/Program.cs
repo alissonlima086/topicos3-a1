@@ -31,6 +31,11 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<EnderecoService>();
+builder.Services.AddScoped<IItemPedidoService, ItemPedidoService>();
+builder.Services.AddScoped<IPratoService, PratoService>();
+builder.Services.AddScoped<IIngredienteService, IngredienteService>();
+builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<ICardapioService, CardapioService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -46,6 +51,7 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 
     await SeedData.CriarAdmin(services);
+    await SeedData.PopularDadosTeste(services);
 }
 
 if (!app.Environment.IsDevelopment())

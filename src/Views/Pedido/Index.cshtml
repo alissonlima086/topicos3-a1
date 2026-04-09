@@ -1,0 +1,39 @@
+@model IEnumerable<WebApplication1.Models.Pedido>
+
+@{
+    ViewData["Title"] = "Pedidos";
+}
+
+<h1>Pedidos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Novo Pedido</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Data/Hora</th>
+            <th>Preço Total</th>
+            <th>Taxa Entrega</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.DataHora.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>R$ @item.PrecoTotal.ToString("F2")</td>
+                <td>R$ @item.TaxaEntrega.ToString("F2")</td>
+                <td><span class="badge bg-secondary">@item.Status</span></td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

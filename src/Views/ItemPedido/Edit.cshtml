@@ -1,0 +1,59 @@
+@model WebApplication1.Models.ItemPedido
+
+@{
+    ViewData["Title"] = "Editar Item";
+}
+
+<h1>Editar Item do Pedido</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="PedidoId" />
+
+            <div class="form-group">
+                <label asp-for="NomePrato" class="control-label"></label>
+                <input asp-for="NomePrato" class="form-control" />
+                <span asp-validation-for="NomePrato" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Quantidade" class="control-label"></label>
+                <input asp-for="Quantidade" class="form-control" />
+                <span asp-validation-for="Quantidade" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PrecoUnitario" class="control-label"></label>
+                <input asp-for="PrecoUnitario" class="form-control" />
+                <span asp-validation-for="PrecoUnitario" class="text-danger"></span>
+            </div>
+
+            <div class="form-group form-check mt-2">
+                <input asp-for="FoiSugestao" class="form-check-input" />
+                <label asp-for="FoiSugestao" class="form-check-label"></label>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Observacao" class="control-label"></label>
+                <input asp-for="Observacao" class="form-control" />
+                <span asp-validation-for="Observacao" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Salvar" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-controller="Pedido" asp-action="Details" asp-route-id="@Model.PedidoId">Voltar ao Pedido</a>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -1,0 +1,105 @@
+@model IEnumerable<WebApplication1.Models.Cardapio>
+@using WebApplication1.Models.Enums
+
+@{
+    ViewData["Title"] = "Cardápios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Cardápios</h1>
+</div>
+
+@if (TempData["Sucesso"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Sucesso"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Erro"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Erro"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* Formulário de geração *@
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <strong>Gerar Cardápio</strong>
+        <small class="ms-2 text-white-50">Substitui o cardápio existente para o turno selecionado</small>
+    </div>
+    <div class="card-body">
+        <form asp-action="Gerar" method="post" class="row g-3 align-items-end">
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-4">
+                <label class="form-label">Data</label>
+                <input type="date" name="data" class="form-control"
+                       value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Turno</label>
+                <select name="turno" class="form-control">
+                    @foreach (Turno t in Enum.GetValues(typeof(Turno)))
+                    {
+                        <option value="@((int)t)">@t</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    ⚡ Gerar Cardápio
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* Listagem dos cardápios gerados *@
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhum cardápio gerado ainda.</div>
+}
+else
+{
+    @foreach (var cardapio in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>@cardapio.Data.ToString("dd/MM/yyyy") — @cardapio.Turno</strong>
+                <span class="badge bg-secondary">@cardapio.Itens.Count pratos</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Prato</th>
+                            <th>Preço Base</th>
+                            <th>Sugestão do Chef</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in cardapio.Itens.OrderByDescending(i => i.IsSugestao))
+                        {
+                            <tr class="@(item.IsSugestao ? "table-warning" : "")">
+                                <td>
+                                    @item.Prato?.Nome
+                                    @if (item.IsSugestao)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1">⭐ Sugestão</span>
+                                    }
+                                </td>
+                                <td>R$ @item.Prato?.PrecoBase.ToString("F2")</td>
+                                <td>@(item.IsSugestao ? "Sim" : "Não")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

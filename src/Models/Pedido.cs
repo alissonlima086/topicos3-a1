@@ -22,6 +22,9 @@ namespace WebApplication1.Models
         [Required]
         public Guid UsuarioId { get; set; }
 
+        public Usuario? Usuario { get; set; }
+        public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
+
         public Pedido()
         {
             Id = Guid.NewGuid();
