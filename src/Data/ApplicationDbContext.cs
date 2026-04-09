@@ -19,6 +19,7 @@ namespace WebApplication1.Data
         public DbSet<Ingrediente> Ingredientes { get; set; }
         public DbSet<PratoIngrediente> PratoIngredientes { get; set; }
         public DbSet<Cardapio> Cardapios { get; set; }
+        public DbSet<ItemCardapio> ItensCardapio { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
         public DbSet<Atendimento> Atendimentos { get; set; }
@@ -40,6 +41,24 @@ namespace WebApplication1.Data
                 .HasOne(pi => pi.Ingrediente)
                 .WithMany(i => i.PratoIngredientes)
                 .HasForeignKey(pi => pi.IngredienteId);
+
+            // Cardapio -> Itens
+            modelBuilder.Entity<ItemCardapio>()
+                .HasOne(ic => ic.Cardapio)
+                .WithMany(c => c.Itens)
+                .HasForeignKey(ic => ic.CardapioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ItemCardapio>()
+                .HasOne(ic => ic.Prato)
+                .WithMany()
+                .HasForeignKey(ic => ic.PratoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cardapio: Data + Turno únicos
+            modelBuilder.Entity<Cardapio>()
+                .HasIndex(c => new { c.Data, c.Turno })
+                .IsUnique();
 
             // Pedido -> Itens
             modelBuilder.Entity<ItemPedido>()

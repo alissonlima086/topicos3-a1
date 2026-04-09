@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Auto_20260408233442 : Migration
+    public partial class Auto_20260409002324 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -70,7 +70,8 @@ namespace WebApplication1.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Data = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Data = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Turno = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -306,6 +307,32 @@ namespace WebApplication1.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ItensCardapio",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CardapioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PratoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsSugestao = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItensCardapio", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ItensCardapio_Cardapios_CardapioId",
+                        column: x => x.CardapioId,
+                        principalTable: "Cardapios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItensCardapio_Pratos_PratoId",
+                        column: x => x.PratoId,
+                        principalTable: "Pratos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PratoIngredientes",
                 columns: table => new
                 {
@@ -392,6 +419,12 @@ namespace WebApplication1.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Cardapios_Data_Turno",
+                table: "Cardapios",
+                columns: new[] { "Data", "Turno" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Enderecos_UsuarioId",
                 table: "Enderecos",
                 column: "UsuarioId");
@@ -400,6 +433,16 @@ namespace WebApplication1.Data.Migrations
                 name: "IX_Enderecos_UsuarioId1",
                 table: "Enderecos",
                 column: "UsuarioId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItensCardapio_CardapioId",
+                table: "ItensCardapio",
+                column: "CardapioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItensCardapio_PratoId",
+                table: "ItensCardapio",
+                column: "PratoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ItensPedido_PedidoId",
@@ -449,10 +492,10 @@ namespace WebApplication1.Data.Migrations
                 name: "Atendimentos");
 
             migrationBuilder.DropTable(
-                name: "Cardapios");
+                name: "Enderecos");
 
             migrationBuilder.DropTable(
-                name: "Enderecos");
+                name: "ItensCardapio");
 
             migrationBuilder.DropTable(
                 name: "ItensPedido");
@@ -465,6 +508,9 @@ namespace WebApplication1.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Cardapios");
 
             migrationBuilder.DropTable(
                 name: "Pedidos");

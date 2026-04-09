@@ -176,7 +176,13 @@ namespace WebApplication1.Data.Migrations
                     b.Property<DateTime>("Data")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Turno")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Data", "Turno")
+                        .IsUnique();
 
                     b.ToTable("Cardapios");
                 });
@@ -235,6 +241,30 @@ namespace WebApplication1.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Ingredientes");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.ItemCardapio", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CardapioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsSugestao")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("PratoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardapioId");
+
+                    b.HasIndex("PratoId");
+
+                    b.ToTable("ItensCardapio");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.ItemPedido", b =>
@@ -538,6 +568,25 @@ namespace WebApplication1.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.ItemCardapio", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Cardapio", "Cardapio")
+                        .WithMany("Itens")
+                        .HasForeignKey("CardapioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebApplication1.Models.Prato", "Prato")
+                        .WithMany()
+                        .HasForeignKey("PratoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cardapio");
+
+                    b.Navigation("Prato");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.ItemPedido", b =>
                 {
                     b.HasOne("WebApplication1.Models.Pedido", "Pedido")
@@ -596,6 +645,11 @@ namespace WebApplication1.Data.Migrations
                     b.Navigation("Mesa");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Cardapio", b =>
+                {
+                    b.Navigation("Itens");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Ingrediente", b =>

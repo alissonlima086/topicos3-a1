@@ -1,7 +1,10 @@
-public enum Turno
+namespace WebApplication1.Models.Enums
 {
-    Manha,
-    Tarde,
-    Noite,
-    Madrugada
+    public enum Turno
+    {
+        Manha,
+        Tarde,
+        Noite,
+        Madrugada
+    }
 }
