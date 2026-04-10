@@ -23,6 +23,7 @@ namespace WebApplication1.Models
         public Guid UsuarioId { get; set; }
 
         public Usuario? Usuario { get; set; }
+        public Atendimento? Atendimento { get; set; }
         public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();
 
         public Pedido()
