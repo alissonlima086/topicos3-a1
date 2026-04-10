@@ -16,9 +16,23 @@ namespace WebApplication1.Controllers
             _enderecoService = enderecoService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(Guid? usuarioId)
         {
-            return View(await _enderecoService.ListarTodosAsync());
+            IEnumerable<Endereco> enderecos;
+            if (usuarioId.HasValue)
+            {
+                enderecos = await _enderecoService.ListarPorUsuarioAsync(usuarioId.Value);
+                var usuario = await _enderecoService.BuscarUsuarioPorIdAsync(usuarioId.Value);
+                ViewBag.UsuarioId = usuarioId;
+                ViewBag.UsuarioNome = usuario?.Nome ?? "Usuário";
+            }
+            else
+            {
+                enderecos = await _enderecoService.ListarTodosAsync();
+                ViewBag.UsuarioId = null;
+                ViewBag.UsuarioNome = null;
+            }
+            return View(enderecos);
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -29,11 +43,18 @@ namespace WebApplication1.Controllers
             return View(endereco);
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create(Guid? usuarioId)
+        {
+            var endereco = new Endereco();
+            if (usuarioId.HasValue)
+                endereco.UsuarioId = usuarioId.Value;
+            ViewBag.UsuarioId = usuarioId;
+            return View(endereco);
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId")] Endereco endereco)
+        public async Task<IActionResult> Create([Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId,Principal")] Endereco endereco)
         {
             if (ModelState.IsValid)
             {
@@ -41,10 +62,12 @@ namespace WebApplication1.Controllers
                 if (erro != null)
                 {
                     ModelState.AddModelError("UsuarioId", erro);
+                    ViewBag.UsuarioId = endereco.UsuarioId;
                     return View(endereco);
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { usuarioId = endereco.UsuarioId });
             }
+            ViewBag.UsuarioId = endereco.UsuarioId;
             return View(endereco);
         }
 
@@ -58,7 +81,7 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Local,Bairro,Cep,Complemento")] Endereco endereco)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId,Principal")] Endereco endereco)
         {
             if (id != endereco.Id) return NotFound();
 
@@ -74,9 +97,17 @@ namespace WebApplication1.Controllers
                     if (!_enderecoService.Existe(endereco.Id)) return NotFound();
                     throw;
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { usuarioId = endereco.UsuarioId });
             }
             return View(endereco);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DefinirPrincipal(Guid id, Guid usuarioId)
+        {
+            await _enderecoService.DefinirPrincipalAsync(id);
+            return RedirectToAction(nameof(Index), new { usuarioId });
         }
 
         [Authorize(Roles = "Admin")]
@@ -91,18 +122,10 @@ namespace WebApplication1.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id, Guid? usuarioId)
         {
             await _enderecoService.ExcluirAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> BuscarUsuarioPorCpf(string cpf)
-        {
-            var usuario = await _enderecoService.BuscarUsuarioPorCpfAsync(cpf);
-            if (usuario == null) return Json(new { encontrado = false });
-            return Json(new { encontrado = true, id = usuario.Id, nome = usuario.Nome });
+            return RedirectToAction(nameof(Index), new { usuarioId });
         }
 
         [HttpGet]

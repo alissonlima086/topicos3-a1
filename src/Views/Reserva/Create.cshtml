@@ -1,0 +1,167 @@
+@model WebApplication1.Models.ReservaCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Reserva";
+}
+
+<h1>Nova Reserva</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" id="formReserva">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Data" class="control-label fw-semibold">Data</label>
+                <input asp-for="Data" type="date" class="form-control" id="inputData" />
+                <span asp-validation-for="Data" class="text-danger"></span>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label asp-for="HoraInicio" class="control-label fw-semibold">Horário de Início</label>
+                    <input asp-for="HoraInicio" type="time" class="form-control" id="inputHoraInicio" />
+                    <span asp-validation-for="HoraInicio" class="text-danger"></span>
+                </div>
+                <div class="col">
+                    <label asp-for="HoraFim" class="control-label fw-semibold">Horário de Fim</label>
+                    <input asp-for="HoraFim" type="time" class="form-control" id="inputHoraFim" />
+                    <span asp-validation-for="HoraFim" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Alerta de conflito em tempo real -->
+            <div id="alertaConflito" class="alert d-none mb-3" role="alert"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="NumeroPessoas" class="control-label fw-semibold"></label>
+                <input asp-for="NumeroPessoas" type="number" min="1" class="form-control" />
+                <span asp-validation-for="NumeroPessoas" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="MesaId" class="control-label fw-semibold">Mesa</label>
+                <select asp-for="MesaId" class="form-select" id="selectMesa">
+                    <option value="">-- Selecione uma mesa --</option>
+                    @foreach (var mesa in Model.Mesas)
+                    {
+                        <option value="@mesa.Id">Mesa @mesa.Numero (capacidade: @mesa.Capacidade)</option>
+                    }
+                </select>
+                <span asp-validation-for="MesaId" class="text-danger"></span>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-semibold">Usuário</div>
+                <div class="card-body">
+                    <div class="form-group mb-2">
+                        <label asp-for="UsuarioId" class="control-label">ID do Usuário</label>
+                        <input asp-for="UsuarioId" class="form-control" placeholder="Cole o GUID (opcional)" />
+                        <span asp-validation-for="UsuarioId" class="text-danger"></span>
+                    </div>
+                    <div class="text-center text-muted mb-2">— ou —</div>
+                    <div class="form-group">
+                        <label asp-for="UsuarioCpf" class="control-label">CPF do Usuário</label>
+                        <div class="input-group">
+                            <input asp-for="UsuarioCpf" class="form-control" placeholder="Digite o CPF" id="CpfBusca" />
+                            <button type="button" class="btn btn-secondary" onclick="buscarUsuario()">Buscar</button>
+                        </div>
+                        <div id="usuarioFeedback" class="mt-1"></div>
+                        <span asp-validation-for="UsuarioCpf" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Criar Reserva" class="btn btn-primary" id="btnSubmit" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Voltar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        let conflitoPendente = false;
+        let verificacaoTimeout = null;
+
+        const inputData = document.getElementById('inputData');
+        const inputInicio = document.getElementById('inputHoraInicio');
+        const inputFim = document.getElementById('inputHoraFim');
+        const selectMesa = document.getElementById('selectMesa');
+        const alerta = document.getElementById('alertaConflito');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        [inputData, inputInicio, inputFim, selectMesa].forEach(el =>
+            el.addEventListener('change', agendarVerificacao)
+        );
+
+        function agendarVerificacao() {
+            clearTimeout(verificacaoTimeout);
+            verificacaoTimeout = setTimeout(verificarConflito, 400);
+        }
+
+        async function verificarConflito() {
+            const mesa = selectMesa.value;
+            const data = inputData.value;
+            const ini = inputInicio.value;
+            const fim = inputFim.value;
+
+            if (!mesa || !data || !ini || !fim) {
+                esconderAlerta();
+                return;
+            }
+
+            const url = `/Reserva/VerificarConflito?mesaId=${mesa}&data=${data}&horaInicio=${ini}&horaFim=${fim}`;
+            try {
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (json.conflito) {
+                    conflitoPendente = true;
+                    let msg = '⚠️ Esta mesa já está reservada neste horário.';
+                    if (json.ocupadas && json.ocupadas.length > 0) {
+                        const lista = json.ocupadas.map(o => `${o.ini}–${o.fim}`).join(', ');
+                        msg += ` Horários ocupados: ${lista}.`;
+                    }
+                    mostrarAlerta(msg, 'warning');
+                    btnSubmit.disabled = true;
+                } else if (json.erro) {
+                    conflitoPendente = false;
+                    mostrarAlerta('ℹ️ ' + json.erro, 'info');
+                    btnSubmit.disabled = false;
+                } else {
+                    conflitoPendente = false;
+                    mostrarAlerta('✓ Horário disponível.', 'success');
+                    btnSubmit.disabled = false;
+                }
+            } catch {
+                esconderAlerta();
+            }
+        }
+
+        function mostrarAlerta(msg, tipo) {
+            alerta.className = `alert alert-${tipo} mb-3`;
+            alerta.textContent = msg;
+        }
+
+        function esconderAlerta() {
+            alerta.className = 'alert d-none mb-3';
+            btnSubmit.disabled = false;
+        }
+
+        async function buscarUsuario() {
+            const cpf = document.getElementById('CpfBusca').value;
+            if (!cpf) return;
+            const res = await fetch(`/Reserva/BuscarUsuarioPorCpf?cpf=${cpf}`);
+            const data = await res.json();
+            const div = document.getElementById('usuarioFeedback');
+            if (data.encontrado) {
+                div.innerHTML = `<span class="text-success">✓ ${data.nome}</span>`;
+            } else {
+                div.innerHTML = `<span class="text-danger">Usuário não encontrado.</span>`;
+            }
+        }
+    </script>
+}

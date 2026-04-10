@@ -1,0 +1,45 @@
+@model IEnumerable<WebApplication1.Models.Reserva>
+
+@{
+    ViewData["Title"] = "Reservas";
+}
+
+<h1>Reservas</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary btn-sm">+ Nova Reserva</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Horário Início</th>
+            <th>Horário Fim</th>
+            <th>Pessoas</th>
+            <th>Mesa</th>
+            <th>Usuário</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Data.ToString("dd/MM/yyyy")</td>
+                <td>@item.HorarioInicio.ToString("HH:mm")</td>
+                <td>@item.HorarioFim.ToString("HH:mm")</td>
+                <td>@item.NumeroPessoas</td>
+                <td>Mesa @(item.Mesa?.Numero.ToString() ?? item.MesaId.ToString())</td>
+                <td>@(item.Usuario?.Nome ?? item.UsuarioId.ToString())</td>
+                <td>@item.Status</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

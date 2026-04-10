@@ -1,53 +1,60 @@
-@model WebApplication1.Models.Usuario
+@model WebApplication1.Models.CadastroUsuarioViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Novo Usuário";
 }
 
-<h1>Create</h1>
-
-<h4>Usuario</h4>
+<h1>Novo Usuário</h1>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="form-group">
-                <label asp-for="Nome"></label>
+            <div class="form-group mb-2">
+                <label asp-for="Nome" class="control-label"></label>
                 <input asp-for="Nome" class="form-control" />
                 <span asp-validation-for="Nome" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Email"></label>
+            <div class="form-group mb-2">
+                <label asp-for="Email" class="control-label"></label>
                 <input asp-for="Email" class="form-control" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Cpf"></label>
-                <input asp-for="Cpf" class="form-control" />
+            <div class="form-group mb-2">
+                <label asp-for="Cpf" class="control-label"></label>
+                <input asp-for="Cpf" class="form-control" maxlength="11" />
                 <span asp-validation-for="Cpf" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="DataNascimento"></label>
-                <input asp-for="DataNascimento" class="form-control" />
+            <div class="form-group mb-2">
+                <label asp-for="DataNascimento" class="control-label"></label>
+                <input asp-for="DataNascimento" type="date" class="form-control" />
                 <span asp-validation-for="DataNascimento" class="text-danger"></span>
             </div>
 
-            <div class="form-group mt-2">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <div class="form-group mb-2">
+                <label asp-for="Senha" class="control-label"></label>
+                <input asp-for="Senha" class="form-control" />
+                <span asp-validation-for="Senha" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ConfirmarSenha" class="control-label"></label>
+                <input asp-for="ConfirmarSenha" class="form-control" />
+                <span asp-validation-for="ConfirmarSenha" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Criar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Voltar</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

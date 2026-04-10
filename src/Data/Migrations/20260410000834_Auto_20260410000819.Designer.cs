@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260409002339_Auto_20260409002324")]
-    partial class Auto_20260409002324
+    [Migration("20260410000834_Auto_20260410000819")]
+    partial class Auto_20260410000819
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -211,6 +211,9 @@ namespace WebApplication1.Data.Migrations
                     b.Property<string>("Local")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Principal")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uniqueidentifier");

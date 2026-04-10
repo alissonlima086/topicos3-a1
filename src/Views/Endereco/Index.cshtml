@@ -1,53 +1,64 @@
 @model IEnumerable<WebApplication1.Models.Endereco>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = ViewBag.UsuarioNome != null ? $"Endereços de {ViewBag.UsuarioNome}" : "Todos os Endereços";
+    Guid? usuarioId = ViewBag.UsuarioId;
 }
 
-<h1>Index</h1>
+<h1>@ViewData["Title"]</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    @if (usuarioId.HasValue)
+    {
+        <a asp-action="Create" asp-route-usuarioId="@usuarioId" class="btn btn-primary btn-sm">+ Novo Endereço</a>
+        <a asp-controller="Usuario" asp-action="Index" class="btn btn-secondary btn-sm ms-2">← Voltar para Usuários</a>
+    }
+    else
+    {
+        <a asp-action="Create" class="btn btn-primary btn-sm">+ Novo Endereço</a>
+    }
 </p>
-<table class="table">
+
+<table class="table table-striped align-middle">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Local)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Bairro)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Cep)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Complemento)
-            </th>
+            <th>Local</th>
+            <th>Bairro</th>
+            <th>CEP</th>
+            <th>Complemento</th>
+            <th>Principal</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Local)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Bairro)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cep)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Complemento)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Local</td>
+                <td>@item.Bairro</td>
+                <td>@item.Cep</td>
+                <td>@item.Complemento</td>
+                <td>
+                    @if (item.Principal)
+                    {
+                        <span class="badge bg-success">✓ Principal</span>
+                    }
+                    else if (usuarioId.HasValue)
+                    {
+                        <form asp-action="DefinirPrincipal" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="usuarioId" value="@item.UsuarioId" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Definir principal</button>
+                        </form>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id" asp-route-usuarioId="@item.UsuarioId">Excluir</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

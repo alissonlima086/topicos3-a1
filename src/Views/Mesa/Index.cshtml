@@ -1,0 +1,48 @@
+@model IEnumerable<WebApplication1.Models.Mesa>
+
+@{
+    ViewData["Title"] = "Mesas";
+}
+
+<h1>Mesas</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nova Mesa</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Número</th>
+            <th>Capacidade</th>
+            <th>Disponível</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Numero</td>
+                <td>@item.Capacidade</td>
+                <td>
+                    @if (item.Disponivel)
+                    {
+                        <span class="badge bg-success">Sim</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Não</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Excluir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

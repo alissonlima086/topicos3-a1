@@ -36,6 +36,8 @@ builder.Services.AddScoped<IPratoService, PratoService>();
 builder.Services.AddScoped<IIngredienteService, IngredienteService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<ICardapioService, CardapioService>();
+builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IMesaService, MesaService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
