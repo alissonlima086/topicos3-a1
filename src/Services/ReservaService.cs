@@ -38,6 +38,32 @@ namespace WebApplication1.Services
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
+        public async Task<ResultadoConflito> VerificarConflitoAsync(Guid mesaId, DateTime inicio, DateTime fim, Guid? ignorarId = null)
+        {
+            var query = _context.Reservas.Where(r =>
+                r.MesaId == mesaId &&
+                r.Status != Status.Cancelado &&
+                r.HorarioInicio < fim &&
+                r.HorarioFim > inicio);
+
+            if (ignorarId.HasValue)
+                query = query.Where(r => r.Id != ignorarId.Value);
+
+            var conflitantes = await query
+                .Select(r => new ConflitoPeriodo
+                {
+                    HorarioInicio = r.HorarioInicio,
+                    HorarioFim = r.HorarioFim
+                })
+                .ToListAsync();
+
+            return new ResultadoConflito
+            {
+                TemConflito = conflitantes.Any(),
+                HorariosOcupados = conflitantes
+            };
+        }
+
         public async Task<(Reserva? reserva, string? erro)> CriarAsync(Reserva reserva)
         {
             var mesaExiste = await _context.Mesas.AnyAsync(m => m.Id == reserva.MesaId);
@@ -48,12 +74,8 @@ namespace WebApplication1.Services
             if (!usuarioExiste)
                 return (null, "Usuário não encontrado.");
 
-            var conflito = await _context.Reservas.AnyAsync(r =>
-                r.MesaId == reserva.MesaId &&
-                r.Status != Status.Cancelado &&
-                r.HorarioInicio < reserva.HorarioFim &&
-                r.HorarioFim > reserva.HorarioInicio);
-            if (conflito)
+            var resultado = await VerificarConflitoAsync(reserva.MesaId, reserva.HorarioInicio, reserva.HorarioFim);
+            if (resultado.TemConflito)
                 return (null, "Mesa já reservada para este horário.");
 
             reserva.Id = Guid.NewGuid();

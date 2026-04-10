@@ -92,14 +92,15 @@ namespace WebApplication1.Models
 
     public class ReservaCreateViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Informe a data.")]
+        [DataType(DataType.Date)]
         public DateTime Data { get; set; }
 
-        [Required]
-        public DateTime HorarioInicio { get; set; }
+        [Required(ErrorMessage = "Informe o horário de início.")]
+        public string HoraInicio { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime HorarioFim { get; set; }
+        [Required(ErrorMessage = "Informe o horário de fim.")]
+        public string HoraFim { get; set; } = string.Empty;
 
         [Required]
         public int NumeroPessoas { get; set; }

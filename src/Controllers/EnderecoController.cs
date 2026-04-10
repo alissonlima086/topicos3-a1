@@ -54,7 +54,7 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId")] Endereco endereco)
+        public async Task<IActionResult> Create([Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId,Principal")] Endereco endereco)
         {
             if (ModelState.IsValid)
             {
@@ -81,7 +81,7 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId")] Endereco endereco)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Local,Bairro,Cep,Complemento,UsuarioId,Principal")] Endereco endereco)
         {
             if (id != endereco.Id) return NotFound();
 
@@ -100,6 +100,14 @@ namespace WebApplication1.Controllers
                 return RedirectToAction(nameof(Index), new { usuarioId = endereco.UsuarioId });
             }
             return View(endereco);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DefinirPrincipal(Guid id, Guid usuarioId)
+        {
+            await _enderecoService.DefinirPrincipalAsync(id);
+            return RedirectToAction(nameof(Index), new { usuarioId });
         }
 
         [Authorize(Roles = "Admin")]

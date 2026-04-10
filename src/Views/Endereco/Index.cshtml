@@ -19,13 +19,14 @@
     }
 </p>
 
-<table class="table table-striped">
+<table class="table table-striped align-middle">
     <thead>
         <tr>
-            <th>@Html.DisplayNameFor(model => model.Local)</th>
-            <th>@Html.DisplayNameFor(model => model.Bairro)</th>
-            <th>@Html.DisplayNameFor(model => model.Cep)</th>
-            <th>@Html.DisplayNameFor(model => model.Complemento)</th>
+            <th>Local</th>
+            <th>Bairro</th>
+            <th>CEP</th>
+            <th>Complemento</th>
+            <th>Principal</th>
             <th></th>
         </tr>
     </thead>
@@ -33,10 +34,25 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Local)</td>
-                <td>@Html.DisplayFor(modelItem => item.Bairro)</td>
-                <td>@Html.DisplayFor(modelItem => item.Cep)</td>
-                <td>@Html.DisplayFor(modelItem => item.Complemento)</td>
+                <td>@item.Local</td>
+                <td>@item.Bairro</td>
+                <td>@item.Cep</td>
+                <td>@item.Complemento</td>
+                <td>
+                    @if (item.Principal)
+                    {
+                        <span class="badge bg-success">✓ Principal</span>
+                    }
+                    else if (usuarioId.HasValue)
+                    {
+                        <form asp-action="DefinirPrincipal" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="usuarioId" value="@item.UsuarioId" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Definir principal</button>
+                        </form>
+                    }
+                </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |

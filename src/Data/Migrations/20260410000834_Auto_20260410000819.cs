@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Auto_20260409234858 : Migration
+    public partial class Auto_20260410000819 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -236,6 +236,7 @@ namespace WebApplication1.Data.Migrations
                     Cep = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Complemento = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Principal = table.Column<bool>(type: "bit", nullable: false),
                     UsuarioId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
