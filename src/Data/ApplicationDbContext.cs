@@ -22,6 +22,7 @@ namespace WebApplication1.Data
         public DbSet<ItemCardapio> ItensCardapio { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
+        public DbSet<ConfiguracaoDelivery> ConfiguracoesDelivery { get; set; }
         public DbSet<Atendimento> Atendimentos { get; set; }
         public DbSet<AtendimentoPresencial> AtendimentosPresenciais { get; set; }
         public DbSet<AtendimentoDeliveryProprio> AtendimentosDeliveryProprio { get; set; }
@@ -127,23 +128,7 @@ namespace WebApplication1.Data
                 .OnDelete(DeleteBehavior.SetNull)
                 .IsRequired(false);
 
-            modelBuilder.Entity<Atendimento>()
-                .Property<Guid?>("MesaId").IsRequired(false);
 
-            modelBuilder.Entity<Atendimento>()
-                .Property<float?>("TaxaFixa").IsRequired(false);
-
-            modelBuilder.Entity<Atendimento>()
-                .Property<Guid?>("EnderecoEntregaId").IsRequired(false);
-
-            modelBuilder.Entity<Atendimento>()
-                .Property<string?>("NomeApp").IsRequired(false);
-
-            modelBuilder.Entity<Atendimento>()
-                .Property<float?>("ComissaoPorcentagem").IsRequired(false);
-
-            modelBuilder.Entity<Atendimento>()
-                .Property<float?>("TaxaAdicional").IsRequired(false);
         }
     }
 }
