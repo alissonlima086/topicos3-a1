@@ -29,7 +29,7 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown">
                                     <span class="material-symbols-outlined" style="font-size:1.1rem;">person</span>
-                                    @context.User.Identity?.Name
+                                    @context.User.FindFirst("nome")?.Value?.Split(' ')[0]
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/meu-perfil">Meu Perfil</a></li>
