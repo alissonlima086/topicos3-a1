@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using WebApplication1.Models;
 using WebApplication1.Services;
 
@@ -11,7 +12,9 @@ namespace BlazorUsuario.Controllers
         private readonly SignInManager<Usuario> _signInManager;
         private readonly UsuarioService _usuarioService;
 
-        public AuthBlazorController(SignInManager<Usuario> signInManager, UsuarioService usuarioService)
+        public AuthBlazorController(
+            SignInManager<Usuario> signInManager,
+            UsuarioService usuarioService)
         {
             _signInManager = signInManager;
             _usuarioService = usuarioService;
@@ -19,11 +22,29 @@ namespace BlazorUsuario.Controllers
 
         [HttpPost("blazor-login")]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Login([FromForm] string email, [FromForm] string senha)
+        public async Task<IActionResult> Login(
+            [FromForm] string email,
+            [FromForm] string senha)
         {
-            var result = await _signInManager.PasswordSignInAsync(email, senha, isPersistent: true, lockoutOnFailure: false);
-            if (result.Succeeded)
-                return Redirect("/");
+            var user = await _signInManager.UserManager.FindByEmailAsync(email);
+
+            if (user != null)
+            {
+                var result = await _signInManager.CheckPasswordSignInAsync(user, senha, false);
+
+                if (result.Succeeded)
+                {
+                    var claims = new List<Claim>
+                    {
+                        new Claim("nome", user.Nome ?? ""),
+                        new Claim(ClaimTypes.Email, user.Email ?? "")
+                    };
+
+                    await _signInManager.SignInWithClaimsAsync(user, isPersistent: true, claims);
+                    return Redirect("/");
+                }
+            }
+
             return Redirect("/login?erro=1");
         }
 
@@ -50,9 +71,16 @@ namespace BlazorUsuario.Controllers
             };
 
             var result = await _usuarioService.CriarAsync(usuario, senha, role: "Usuario");
+
             if (result.Succeeded)
             {
-                await _signInManager.SignInAsync(usuario, isPersistent: true);
+                var claims = new List<Claim>
+                {
+                    new Claim("nome", usuario.Nome ?? ""),
+                    new Claim(ClaimTypes.Email, usuario.Email ?? "")
+                };
+
+                await _signInManager.SignInWithClaimsAsync(usuario, isPersistent: true, claims);
                 return Redirect("/");
             }
 
