@@ -1,0 +1,120 @@
+@page "/"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@using WebApplication1.Models
+@using WebApplication1.Models.Enums
+@inject ApplicationDbContext Db
+
+<PageTitle>Cardápio - Restaurante</PageTitle>
+
+<div class="text-white text-center py-5" style="background-color:#1a1a1a;">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Bem-vindo ao <span style="color:#e63946;">Restaurante</span></h1>
+        <p class="lead text-secondary">Confira o cardápio de hoje</p>
+        <span class="badge fs-6 px-3 py-2" style="background-color:#e63946;">@turnoAtual</span>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (cardapio == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-danger" role="status"></div>
+        </div>
+    }
+    else if (!cardapio.Itens.Any())
+    {
+        <div class="text-center py-5">
+            <span style="font-size:4rem;">🍽️</span>
+            <h4 class="mt-3 text-muted">Nenhum prato disponível neste turno.</h4>
+        </div>
+    }
+    else
+    {
+        @if (cardapio.Itens.Any(i => i.IsSugestao))
+        {
+            <div class="alert d-flex align-items-center gap-2 mb-4"
+                 style="background:#fff8e1; border-left:4px solid #f59e0b; color:#92400e;">
+                <span style="font-size:1.4rem;">⭐</span>
+                <span><strong>Sugestão do Chef:</strong> o prato destacado tem <strong>20% de desconto</strong> hoje!</span>
+            </div>
+        }
+
+        <div class="row g-4">
+            @foreach (var item in cardapio.Itens.OrderByDescending(i => i.IsSugestao))
+            {
+                var precoFinal = item.IsSugestao ? item.Prato!.PrecoBase * 0.8f : item.Prato!.PrecoBase;
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm @(item.IsSugestao ? "border-warning border-2" : "")"
+                         style="@(item.IsSugestao ? "border: 2px solid #f59e0b !important; box-shadow: 0 4px 16px rgba(245,158,11,.25) !important;" : "")">
+
+                        @if (item.IsSugestao)
+                        {
+                            <div class="text-center py-1 fw-bold"
+                                 style="background:linear-gradient(135deg,#f59e0b,#d97706); color:white; font-size:.85rem; letter-spacing:.04em;">
+                                ⭐ SUGESTÃO DO CHEF — 20% OFF
+                            </div>
+                        }
+
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">@item.Prato?.Nome</h5>
+                            <p class="card-text text-muted small">@item.Prato?.Descricao</p>
+                        </div>
+
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                            @if (item.IsSugestao)
+                            {
+                                <div>
+                                    <span class="text-muted text-decoration-line-through small me-2">
+                                        R$ @item.Prato!.PrecoBase.ToString("F2")
+                                    </span>
+                                    <span class="fw-bold fs-5" style="color:#16a34a;">
+                                        R$ @precoFinal.ToString("F2")
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="fw-bold fs-5" style="color:#e63946;">
+                                    R$ @item.Prato?.PrecoBase.ToString("F2")
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private Cardapio? cardapio;
+    private string turnoAtual = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var turno = ObterTurnoAtual();
+        turnoAtual = turno switch
+        {
+            Turno.Manha => "☀️ Café da Manhã",
+            Turno.Tarde => "🌤️ Almoço",
+            Turno.Noite => "🌙 Jantar",
+            _ => "🌙 Jantar"
+        };
+
+        cardapio = await Db.Cardapios
+            .Include(c => c.Itens)
+            .ThenInclude(i => i.Prato)
+            .FirstOrDefaultAsync(c => c.Data.Date == DateTime.Today && c.Turno == turno);
+    }
+
+    private Turno ObterTurnoAtual()
+    {
+        var hora = DateTime.Now.Hour;
+        if (hora >= 6 && hora < 12) return Turno.Manha;
+        if (hora >= 12 && hora < 18) return Turno.Tarde;
+        return Turno.Noite;
+    }
+}

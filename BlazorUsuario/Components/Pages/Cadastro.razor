@@ -1,0 +1,71 @@
+@page "/cadastro"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<PageTitle>Criar Conta</PageTitle>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height:80vh; background:#f8f8f8;">
+    <div class="card shadow border-0" style="width:460px;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <span style="font-size:3rem;">🍽️</span>
+                <h4 class="mt-2 fw-bold">Criar Conta</h4>
+            </div>
+
+            @if (!string.IsNullOrEmpty(erro))
+            {
+                <div class="alert alert-danger">@erro</div>
+            }
+
+            <form method="post" action="/auth/blazor-cadastro">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nome completo</label>
+                    <input name="nome" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">E-mail</label>
+                    <input type="email" name="email" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">CPF</label>
+                    <input name="cpf" class="form-control" maxlength="11" placeholder="Somente números" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Data de Nascimento</label>
+                    <input type="date" name="dataNascimento" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Senha</label>
+                    <input type="password" name="senha" class="form-control" minlength="6" required />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Confirmar Senha</label>
+                    <input type="password" name="confirmarSenha" class="form-control" minlength="6" required />
+                </div>
+                <button type="submit" class="btn btn-lg w-100 fw-bold text-white" style="background-color:#e63946;">
+                    Cadastrar
+                </button>
+            </form>
+
+            <hr class="my-4" />
+            <p class="text-center mb-0">
+                Já tem conta? <a href="/login" class="fw-bold" style="color:#e63946;">Entrar</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string erro = "";
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var erroParam = query["erro"];
+        if (erroParam == "senhas")
+            erro = "As senhas não coincidem.";
+        else if (!string.IsNullOrEmpty(erroParam))
+            erro = Uri.UnescapeDataString(erroParam);
+    }
+}

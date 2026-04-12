@@ -1,32 +1,28 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class ConfiguracaoDeliveryController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IConfiguracaoDeliveryService _service;
 
-        public ConfiguracaoDeliveryController(ApplicationDbContext context)
+        public ConfiguracaoDeliveryController(IConfiguracaoDeliveryService service)
         {
-            _context = context;
+            _service = service;
         }
 
         public async Task<IActionResult> Index()
         {
-            var configs = await _context.ConfiguracoesDelivery.ToListAsync();
-            return View(configs);
+            return View(await _service.ListarTodosAsync());
         }
 
         public async Task<IActionResult> Create()
         {
-            bool jaTemProprio = await _context.ConfiguracoesDelivery
-                .AnyAsync(c => c.Tipo == TipoDelivery.Proprio);
-            ViewBag.JaTemProprio = jaTemProprio;
+            ViewBag.JaTemProprio = await _service.ExisteDeliveryProprioAsync();
             return View();
         }
 
@@ -34,29 +30,27 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ConfiguracaoDelivery model)
         {
-            if (model.Tipo == TipoDelivery.Proprio)
+            if (!ModelState.IsValid)
             {
-                bool jaTemProprio = await _context.ConfiguracoesDelivery
-                    .AnyAsync(c => c.Tipo == TipoDelivery.Proprio);
-                if (jaTemProprio)
-                {
-                    ModelState.AddModelError("", "Já existe uma configuração de delivery próprio. Edite a existente.");
-                    ViewBag.JaTemProprio = true;
-                    return View(model);
-                }
+                ViewBag.JaTemProprio = await _service.ExisteDeliveryProprioAsync();
+                return View(model);
             }
 
-            if (!ModelState.IsValid) return View(model);
+            var (config, erro) = await _service.CriarAsync(model);
+            if (erro != null)
+            {
+                ModelState.AddModelError("", erro);
+                ViewBag.JaTemProprio = true;
+                return View(model);
+            }
 
-            _context.ConfiguracoesDelivery.Add(model);
-            await _context.SaveChangesAsync();
             TempData["Sucesso"] = "Configuração cadastrada com sucesso.";
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            var config = await _context.ConfiguracoesDelivery.FindAsync(id);
+            var config = await _service.BuscarPorIdAsync(id);
             if (config == null) return NotFound();
             return View(config);
         }
@@ -68,8 +62,9 @@ namespace WebApplication1.Controllers
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid) return View(model);
 
-            _context.Update(model);
-            await _context.SaveChangesAsync();
+            var result = await _service.EditarAsync(id, model);
+            if (result == null) return NotFound();
+
             TempData["Sucesso"] = "Configuração atualizada.";
             return RedirectToAction(nameof(Index));
         }
@@ -78,35 +73,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var config = await _context.ConfiguracoesDelivery.FindAsync(id);
-            if (config != null)
-            {
-                _context.ConfiguracoesDelivery.Remove(config);
-                await _context.SaveChangesAsync();
-            }
+            await _service.ExcluirAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> AtendimentosPresenciais()
-        {
-            var atendimentos = await _context.AtendimentosPresenciais
-                .Include(a => a.Mesa)
-                .Include(a => a.Pedido)
-                .ToListAsync();
-            return View(atendimentos);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FinalizarAtendimento(Guid id)
-        {
-            var atendimento = await _context.AtendimentosPresenciais.FindAsync(id);
-            if (atendimento != null)
-            {
-                atendimento.Finalizar();
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction(nameof(AtendimentosPresenciais));
         }
     }
 }

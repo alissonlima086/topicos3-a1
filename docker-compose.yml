@@ -21,9 +21,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5000
-      DOTNET_USE_POLLING_FILE_WATCHER: "true"
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Initial Catalog=WebApplication1Db;User Id=sa;Password=Sa@123456;TrustServerCertificate=true;"
       SA_PASSWORD: "Sa@123456"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Initial Catalog=WebApplication1Db;User Id=sa;Password=Sa@123456;TrustServerCertificate=true;"
     ports:
       - "5000:5000"
     depends_on:
@@ -31,6 +30,22 @@ services:
     volumes:
       - ./src:/app/src
     working_dir: /app/src
+    networks:
+      - app-network
+
+  blazor:
+    build:
+      context: .
+      dockerfile: BlazorUsuario/Dockerfile
+    container_name: blazor-usuario
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Initial Catalog=WebApplication1Db;User Id=sa;Password=Sa@123456;TrustServerCertificate=true;"
+    ports:
+      - "5001:5001"
+    depends_on:
+      - webapp
     networks:
       - app-network
 

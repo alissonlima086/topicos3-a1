@@ -1,0 +1,51 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+
+<PageTitle>Entrar</PageTitle>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height:80vh; background:#f8f8f8;">
+    <div class="card shadow border-0" style="width:420px;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <span style="font-size:3rem;">🍽️</span>
+                <h4 class="mt-2 fw-bold">Entrar</h4>
+            </div>
+
+            @if (temErro)
+            {
+                <div class="alert alert-danger">E-mail ou senha inválidos.</div>
+            }
+
+            <form method="post" action="/auth/blazor-login">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">E-mail</label>
+                    <input type="email" name="email" class="form-control form-control-lg" required autofocus />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Senha</label>
+                    <input type="password" name="senha" class="form-control form-control-lg" required />
+                </div>
+                <button type="submit" class="btn btn-lg w-100 fw-bold text-white" style="background-color:#e63946;">
+                    Entrar
+                </button>
+            </form>
+
+            <hr class="my-4" />
+            <p class="text-center mb-0">
+                Não tem conta? <a href="/cadastro" class="fw-bold" style="color:#e63946;">Cadastre-se</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool temErro = false;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Nav.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        temErro = query["erro"] != null;
+    }
+}

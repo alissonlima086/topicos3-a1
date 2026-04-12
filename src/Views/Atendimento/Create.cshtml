@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Novo Atendimento Presencial";
+    bool temMesa = ViewBag.TemMesa ?? false;
+}
+
+<h2>🪑 Novo Atendimento Presencial</h2>
+<hr />
+
+@if (TempData["Erro"] != null)
+{
+    <div class="alert alert-danger">@TempData["Erro"]</div>
+}
+
+@if (!temMesa)
+{
+    <div class="alert alert-warning">
+        <strong>Nenhuma mesa disponível no momento.</strong> Todas as mesas estão ocupadas.
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+}
+else
+{
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Mesa Disponível</label>
+                <select name="mesaId" class="form-select" required>
+                    <option value="">Selecione...</option>
+                    @foreach (SelectListItem item in ViewBag.Mesas)
+                    {
+                        <option value="@item.Value">Mesa @item.Text</option>
+                    }
+                </select>
+                <div class="form-text text-success">Apenas mesas livres são exibidas.</div>
+            </div>
+        </div>
+        <div class="mt-2">
+            <button type="submit" class="btn btn-success">Abrir Atendimento</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+        </div>
+    </form>
+}

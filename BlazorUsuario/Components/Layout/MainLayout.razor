@@ -1,0 +1,73 @@
+@inherits LayoutComponentBase
+
+<div class="min-vh-100 d-flex flex-column">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#1a1a1a;">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/">
+                🍽️ <span style="color:#e63946;">Restaurante</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Cardápio</NavLink>
+                    </li>
+                    <AuthorizeView>
+                        <Authorized>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="/meus-pedidos">Meus Pedidos</NavLink>
+                            </li>
+                        </Authorized>
+                    </AuthorizeView>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <AuthorizeView>
+                        <Authorized>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    👤 @context.User.Identity?.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/meu-perfil">Meu Perfil</a></li>
+                                    <li><a class="dropdown-item" href="/meus-enderecos">Meus Endereços</a></li>
+                                    <li><a class="dropdown-item" href="/alterar-senha">Alterar Senha</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" action="/auth/blazor-logout">
+                                            <input name="__RequestVerificationToken" type="hidden" />
+                                            <button type="submit" class="dropdown-item text-danger">Sair</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </Authorized>
+                        <NotAuthorized>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/login">Entrar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-danger btn-sm ms-2" href="/cadastro">Cadastrar</a>
+                            </li>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1">
+        @Body
+    </main>
+
+    <footer style="background-color:#1a1a1a; color:#aaa;" class="py-3 text-center">
+        <small>🍽️ Restaurante &copy; @DateTime.Now.Year</small>
+    </footer>
+</div>
+
+<div id="blazor-error-ui" class="alert alert-danger m-3" style="display:none;">
+    Ocorreu um erro.
+    <a href="" class="alert-link">Recarregar</a>
+    <a class="float-end" onclick="document.getElementById('blazor-error-ui').style.display='none'">✕</a>
+</div>

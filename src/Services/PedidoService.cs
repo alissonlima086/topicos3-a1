@@ -16,18 +16,26 @@ namespace WebApplication1.Services
 
         public async Task<IEnumerable<Pedido>> ListarTodosAsync()
         {
-            return await _context.Pedidos.ToListAsync();
+            return await _context.Pedidos
+                .Include(p => p.Itens)
+                .Include(p => p.Usuario)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Pedido>> ListarPorUsuarioAsync(Guid usuarioId)
         {
-            return await _context.Pedidos.Where(p => p.UsuarioId == usuarioId).ToListAsync();
+            return await _context.Pedidos
+                .Include(p => p.Itens)
+                .Include(p => p.Atendimento)
+                .Where(p => p.UsuarioId == usuarioId)
+                .ToListAsync();
         }
 
         public async Task<Pedido?> BuscarPorIdAsync(Guid id)
         {
             return await _context.Pedidos
                 .Include(p => p.Itens)
+                .Include(p => p.Usuario)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -39,8 +47,22 @@ namespace WebApplication1.Services
 
             pedido.Id = Guid.NewGuid();
             pedido.DataHora = DateTime.Now;
-            pedido.Status = Status.Pendente;
-            _context.Add(pedido);
+
+            if (pedido.Status == default)
+                pedido.Status = Status.Pendente;
+
+            // Garante que itens têm o PedidoId correto
+            foreach (var item in pedido.Itens)
+            {
+                item.Id = Guid.NewGuid();
+                item.PedidoId = pedido.Id;
+            }
+
+            // Recalcula PrecoTotal se não foi definido
+            if (pedido.PrecoTotal == 0 && pedido.Itens.Any())
+                pedido.PrecoTotal = pedido.Itens.Sum(i => i.PrecoUnitario * i.Quantidade) + pedido.TaxaEntrega;
+
+            _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
             return (pedido, null);
         }
@@ -55,8 +77,11 @@ namespace WebApplication1.Services
 
         public async Task<bool> ExcluirAsync(Guid id)
         {
-            var pedido = await _context.Pedidos.FindAsync(id);
+            var pedido = await _context.Pedidos
+                .Include(p => p.Itens)
+                .FirstOrDefaultAsync(p => p.Id == id);
             if (pedido == null) return false;
+            _context.ItensPedido.RemoveRange(pedido.Itens);
             _context.Pedidos.Remove(pedido);
             await _context.SaveChangesAsync();
             return true;

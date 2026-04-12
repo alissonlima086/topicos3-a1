@@ -1,0 +1,94 @@
+@page "/meus-pedidos"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@using WebApplication1.Models
+@using WebApplication1.Models.Enums
+@inject ApplicationDbContext Db
+@inject UserManager<Usuario> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Meus Pedidos</PageTitle>
+
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">Meus Pedidos</h2>
+
+    @if (pedidos == null)
+    {
+        <div class="text-center py-5"><div class="spinner-border text-danger"></div></div>
+    }
+    else if (!pedidos.Any())
+    {
+        <div class="text-center py-5">
+            <span style="font-size:4rem;">📋</span>
+            <h5 class="mt-3 text-muted">Você ainda não tem pedidos.</h5>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var p in pedidos)
+            {
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">@p.DataHora.ToString("dd/MM/yyyy HH:mm")</div>
+                                <div class="text-muted small">@p.Itens.Count item(s) · @TipoAtendimento(p)</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold fs-5" style="color:#e63946;">R$ @p.PrecoTotal.ToString("F2")</div>
+                                @if (p.TaxaEntrega > 0)
+                                {
+                                    <div class="text-muted small">+ R$ @p.TaxaEntrega.ToString("F2") entrega</div>
+                                }
+                                <span class="badge bg-@BadgeColor(p.Status)">@p.Status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Pedido>? pedidos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var usuario = await UserManager.GetUserAsync(authState.User);
+        if (usuario != null)
+        {
+            pedidos = await Db.Pedidos
+                .Include(p => p.Itens)
+                .Include(p => p.Atendimento)
+                .Where(p => p.UsuarioId == usuario.Id)
+                .OrderByDescending(p => p.DataHora)
+                .ToListAsync();
+        }
+    }
+
+    private string BadgeColor(Status s) => s switch
+    {
+        Status.Pendente => "secondary",
+        Status.Confirmado => "info",
+        Status.EmPreparo => "warning text-dark",
+        Status.SaiuParaEntrega => "primary",
+        Status.Entregue or Status.Finalizado => "success",
+        Status.Cancelado => "danger",
+        _ => "secondary"
+    };
+
+    private string TipoAtendimento(Pedido p) => p.Atendimento switch
+    {
+        AtendimentoPresencial => "Presencial",
+        AtendimentoDeliveryApp a => $"{a.NomeApp}",
+        AtendimentoDeliveryProprio => "Delivery Próprio",
+        _ => "-"
+    };
+}

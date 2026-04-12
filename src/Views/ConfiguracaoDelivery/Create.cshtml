@@ -4,74 +4,74 @@
     bool jaTemProprio = ViewBag.JaTemProprio ?? false;
 }
 
-<h2>Nova Configuração de Delivery</h2>
+<h2>🚚 Nova Configuração de Delivery</h2>
+<hr />
 
-<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<div class="row">
+    <div class="col-md-5">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-
-    <div class="mb-3">
-        <label asp-for="Tipo" class="form-label"></label>
-        <select asp-for="Tipo" class="form-select" id="tipoSelect">
-            <option value="App">Delivery App</option>
-            @if (jaTemProprio)
-            {
-                <option value="Proprio" disabled>Delivery Próprio (já cadastrado)</option>
-            }
-            else
-            {
-                <option value="Proprio">Delivery Próprio</option>
-            }
-        </select>
-    </div>
-
-    <div id="camposApp">
-        <div class="mb-3">
-            <label asp-for="NomeApp" class="form-label">Nome do App</label>
-            <input asp-for="NomeApp" class="form-control" />
-        </div>
-        <div class="mb-3">
-            <label asp-for="ComissaoPorcentagem" class="form-label">Comissão (%)</label>
-            <div class="input-group">
-                <input asp-for="ComissaoPorcentagem" class="form-control" type="number" min="0" max="100" step="1" placeholder="Ex: 12" />
-                <span class="input-group-text">%</span>
+            <div class="mb-3">
+                <label asp-for="Tipo" class="form-label"></label>
+                <select asp-for="Tipo" class="form-select" id="tipoSelect"
+                        asp-items="Html.GetEnumSelectList<WebApplication1.Models.TipoDelivery>()">
+                </select>
+                @if (jaTemProprio)
+                {
+                    <div class="text-warning small mt-1">⚠️ Já existe um delivery próprio. Você só pode criar do tipo App.</div>
+                }
             </div>
-        </div>
-        <div class="mb-3">
-            <label asp-for="TaxaAdicionalApp" class="form-label">Taxa Adicional por Pedido (R$)</label>
-            <div class="input-group">
-                <span class="input-group-text">R$</span>
-                <input asp-for="TaxaAdicionalApp" class="form-control" type="number" step="0.01" min="0" />
+
+            <div id="camposApp">
+                <div class="mb-3">
+                    <label asp-for="NomeApp" class="form-label">Nome do App</label>
+                    <input asp-for="NomeApp" class="form-control" placeholder="ex: iFood, Rappi..." />
+                    <span asp-validation-for="NomeApp" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ComissaoPorcentagem" class="form-label">Comissão (%)</label>
+                    <input asp-for="ComissaoPorcentagem" class="form-control" type="number" min="0" max="100" />
+                    <span asp-validation-for="ComissaoPorcentagem" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="TaxaAdicionalApp" class="form-label">Taxa Adicional (R$)</label>
+                    <input asp-for="TaxaAdicionalApp" class="form-control" type="number" step="0.01" />
+                    <span asp-validation-for="TaxaAdicionalApp" class="text-danger"></span>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div id="camposProprio" style="display:none">
-        <div class="mb-3">
-            <label asp-for="TaxaFixaProprio" class="form-label">Taxa Fixa por Entrega (R$)</label>
-            <div class="input-group">
-                <span class="input-group-text">R$</span>
-                <input asp-for="TaxaFixaProprio" class="form-control" type="number" step="0.01" min="0" />
+            <div id="camposProprio" style="display:none">
+                <div class="mb-3">
+                    <label asp-for="TaxaFixaProprio" class="form-label">Taxa Fixa de Entrega (R$)</label>
+                    <input asp-for="TaxaFixaProprio" class="form-control" type="number" step="0.01" />
+                    <span asp-validation-for="TaxaFixaProprio" class="text-danger"></span>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="mb-3 form-check">
-        <input asp-for="Ativo" class="form-check-input" type="checkbox" checked />
-        <label asp-for="Ativo" class="form-check-label">Ativo</label>
-    </div>
+            <div class="mb-3 form-check">
+                <input asp-for="Ativo" class="form-check-input" type="checkbox" />
+                <label asp-for="Ativo" class="form-check-label">Ativo</label>
+            </div>
 
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-</form>
+            <div class="mt-3">
+                <input type="submit" value="Salvar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
 
 @section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
-        document.getElementById('tipoSelect').addEventListener('change', function () {
-            const isApp = this.value === 'App';
+        const sel = document.getElementById('tipoSelect');
+        function toggleCampos() {
+            const isApp = sel.value === '0'; // 0=App, 1=Proprio
             document.getElementById('camposApp').style.display = isApp ? '' : 'none';
             document.getElementById('camposProprio').style.display = isApp ? 'none' : '';
-        });
+        }
+        sel.addEventListener('change', toggleCampos);
+        toggleCampos();
     </script>
 }
