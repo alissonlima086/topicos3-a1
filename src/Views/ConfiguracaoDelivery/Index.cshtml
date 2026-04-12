@@ -1,0 +1,59 @@
+@model IEnumerable<WebApplication1.Models.ConfiguracaoDelivery>
+@{
+    ViewData["Title"] = "Configurações de Delivery";
+}
+
+<h2>🚚 Configurações de Delivery</h2>
+
+@if (TempData["Sucesso"] != null)
+{
+    <div class="alert alert-success">@TempData["Sucesso"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">+ Nova Configuração</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhuma configuração cadastrada.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Tipo</th>
+                <th>Nome App</th>
+                <th>Comissão (%)</th>
+                <th>Taxa Adicional App</th>
+                <th>Taxa Fixa Próprio</th>
+                <th>Ativo</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td><span class="badge bg-@(c.Tipo == WebApplication1.Models.TipoDelivery.App ? "info" : "success")">@c.Tipo</span></td>
+                    <td>@(c.NomeApp ?? "-")</td>
+                    <td>@(c.ComissaoPorcentagem.HasValue ? c.ComissaoPorcentagem + "%" : "-")</td>
+                    <td>@(c.TaxaAdicionalApp.HasValue ? "R$ " + c.TaxaAdicionalApp.Value.ToString("F2") : "-")</td>
+                    <td>@(c.TaxaFixaProprio.HasValue ? "R$ " + c.TaxaFixaProprio.Value.ToString("F2") : "-")</td>
+                    <td>
+                        <span class="badge bg-@(c.Ativo ? "success" : "secondary")">@(c.Ativo ? "Sim" : "Não")</span>
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning">Editar</a>
+                        <form asp-action="Delete" asp-route-id="@c.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Excluir esta configuração?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

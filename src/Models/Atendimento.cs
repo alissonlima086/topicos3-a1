@@ -3,7 +3,7 @@ using WebApplication1.Models.Enums;
 
 namespace WebApplication1.Models
 {
-    public class Atendimento
+    public abstract class Atendimento
     {
         [Key]
         public Guid Id { get; set; }
@@ -11,11 +11,16 @@ namespace WebApplication1.Models
         [Required]
         public Status Status { get; set; }
 
-        public Atendimento()
+        public Guid PedidoId { get; set; }
+        public Pedido? Pedido { get; set; }
+
+        protected Atendimento()
         {
             Id = Guid.NewGuid();
             Status = Status.EmAtendimento;
         }
+
+        public abstract void ProcessarAtendimento();
 
         public void Finalizar()
         {

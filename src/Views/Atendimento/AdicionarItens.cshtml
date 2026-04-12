@@ -1,0 +1,129 @@
+@model WebApplication1.Models.AtendimentoPresencial
+@using WebApplication1.Models
+@using WebApplication1.Services
+@{
+    ViewData["Title"] = "Adicionar Itens";
+    var cardapio = ViewBag.Cardapio as Cardapio;
+    var turno = ViewBag.TurnoAtual as string;
+}
+
+<h2>🍽️ Adicionar Itens — Mesa @(Model.Mesa?.Numero)</h2>
+<p class="text-muted">Turno atual: <strong>@turno</strong></p>
+<hr />
+
+@if (TempData["Erro"] != null)   { <div class="alert alert-danger">@TempData["Erro"]</div> }
+@if (TempData["Sucesso"] != null){ <div class="alert alert-success">@TempData["Sucesso"]</div> }
+
+@if (Model.Pedido?.Itens != null && Model.Pedido.Itens.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header bg-light fw-bold">Itens já lançados</div>
+        <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Prato</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th></tr></thead>
+                <tbody>
+                    @foreach (var it in Model.Pedido.Itens)
+                    {
+                        <tr>
+                            <td>@it.NomePrato @(it.FoiSugestao ? "⭐" : "")</td>
+                            <td>@it.Quantidade</td>
+                            <td>R$ @it.PrecoUnitario.ToString("F2")</td>
+                            <td>R$ @((it.PrecoUnitario * it.Quantidade).ToString("F2"))</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="fw-bold">
+                        <td colspan="3" class="text-end">Total atual:</td>
+                        <td>R$ @Model.Pedido.PrecoTotal.ToString("F2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+
+@if (cardapio == null || !cardapio.Itens.Any())
+{
+    <div class="alert alert-warning">
+        ⚠️ Nenhum cardápio disponível para o turno <strong>@turno</strong>.
+        <a asp-controller="Cardapio" asp-action="Index" class="alert-link">Gerar cardápio</a>
+    </div>
+}
+else
+{
+    <p class="text-muted small mb-3">⭐ Sugestão do Chef tem <strong>20% de desconto</strong> aplicado automaticamente.</p>
+
+    <form asp-action="AdicionarItens" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-3 mb-3">
+            @{ int idx = 0; }
+            @foreach (var item in cardapio.Itens.OrderByDescending(i => i.IsSugestao))
+            {
+                var precoFinal = item.IsSugestao ? item.Prato!.PrecoBase * 0.8f : item.Prato!.PrecoBase;
+
+                <div class="col-md-4">
+                    <div class="card h-100 @(item.IsSugestao ? "" : "")"
+                         style="@(item.IsSugestao ? "border:2px solid #f59e0b;" : "")">
+                        @if (item.IsSugestao)
+                        {
+                            <div class="py-1 text-center fw-bold small"
+                                 style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;">
+                                ⭐ SUGESTÃO DO CHEF — 20% OFF
+                            </div>
+                        }
+                        <div class="card-body pb-2">
+                            <div class="fw-bold">@item.Prato?.Nome</div>
+                            @if (item.IsSugestao)
+                            {
+                                <div>
+                                    <span class="text-muted text-decoration-line-through small">R$ @item.Prato!.PrecoBase.ToString("F2")</span>
+                                    <span class="text-success fw-bold ms-1">R$ @precoFinal.ToString("F2")</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="fw-bold" style="color:#e63946;">R$ @precoFinal.ToString("F2")</div>
+                            }
+
+                            <input type="hidden" name="itens[@idx].ItemCardapioId" value="@item.Id" />
+
+                            <div class="mt-2 d-flex align-items-center gap-2">
+                                <label class="form-label mb-0 small">Qtd:</label>
+                                <input type="number" name="itens[@idx].Quantidade"
+                                       class="form-control form-control-sm qtd"
+                                       data-preco="@precoFinal.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"
+                                       min="0" value="0" style="width:75px" onchange="recalcular()" />
+                            </div>
+                            <input type="text" name="itens[@idx].Observacao"
+                                   class="form-control form-control-sm mt-2"
+                                   placeholder="Observação (opcional)" />
+                        </div>
+                    </div>
+                </div>
+                idx++;
+            }
+        </div>
+
+        <div class="p-3 bg-light rounded mb-3 d-flex justify-content-between fs-5">
+            <span>Total a adicionar:</span>
+            <strong id="totalNovo">R$ 0,00</strong>
+        </div>
+
+        <button type="submit" class="btn btn-success">✅ Lançar Itens</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+}
+
+@section Scripts {
+<script>
+    function recalcular() {
+        let total = 0;
+        document.querySelectorAll('.qtd').forEach(el => {
+            total += (parseInt(el.value) || 0) * (parseFloat(el.dataset.preco) || 0);
+        });
+        document.getElementById('totalNovo').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    }
+</script>
+}

@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260410000834_Auto_20260410000819")]
-    partial class Auto_20260410000819
+    [Migration("20260412124712_Auto_20260412124657")]
+    partial class Auto_20260412124657
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -162,12 +162,27 @@ namespace WebApplication1.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("PedidoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("TipoAtendimento")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("PedidoId")
+                        .IsUnique();
+
                     b.ToTable("Atendimentos");
+
+                    b.HasDiscriminator<string>("TipoAtendimento").HasValue("Atendimento");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Cardapio", b =>
@@ -188,6 +203,36 @@ namespace WebApplication1.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Cardapios");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.ConfiguracaoDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ComissaoPorcentagem")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NomeApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<float?>("TaxaAdicionalApp")
+                        .HasColumnType("real");
+
+                    b.Property<float?>("TaxaFixaProprio")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConfiguracoesDelivery");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Endereco", b =>
@@ -508,6 +553,51 @@ namespace WebApplication1.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.AtendimentoDeliveryApp", b =>
+                {
+                    b.HasBaseType("WebApplication1.Models.Atendimento");
+
+                    b.Property<float>("ComissaoPorcentagem")
+                        .HasColumnType("real");
+
+                    b.Property<string>("NomeApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<float>("TaxaAdicional")
+                        .HasColumnType("real");
+
+                    b.HasDiscriminator().HasValue("DeliveryApp");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.AtendimentoDeliveryProprio", b =>
+                {
+                    b.HasBaseType("WebApplication1.Models.Atendimento");
+
+                    b.Property<Guid?>("EnderecoEntregaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("TaxaFixa")
+                        .HasColumnType("real");
+
+                    b.HasIndex("EnderecoEntregaId");
+
+                    b.HasDiscriminator().HasValue("DeliveryProprio");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.AtendimentoPresencial", b =>
+                {
+                    b.HasBaseType("WebApplication1.Models.Atendimento");
+
+                    b.Property<Guid>("MesaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasIndex("MesaId");
+
+                    b.HasDiscriminator().HasValue("Presencial");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -557,6 +647,17 @@ namespace WebApplication1.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Atendimento", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Pedido", "Pedido")
+                        .WithOne("Atendimento")
+                        .HasForeignKey("WebApplication1.Models.Atendimento", "PedidoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Endereco", b =>
@@ -653,6 +754,27 @@ namespace WebApplication1.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.AtendimentoDeliveryProprio", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Endereco", "EnderecoEntrega")
+                        .WithMany()
+                        .HasForeignKey("EnderecoEntregaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("EnderecoEntrega");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.AtendimentoPresencial", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Mesa", "Mesa")
+                        .WithMany()
+                        .HasForeignKey("MesaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Mesa");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Cardapio", b =>
                 {
                     b.Navigation("Itens");
@@ -665,6 +787,8 @@ namespace WebApplication1.Data.Migrations
 
             modelBuilder.Entity("WebApplication1.Models.Pedido", b =>
                 {
+                    b.Navigation("Atendimento");
+
                     b.Navigation("Itens");
                 });
 

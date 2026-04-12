@@ -1,0 +1,139 @@
+@page "/meus-enderecos"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@using WebApplication1.Models
+@inject ApplicationDbContext Db
+@inject UserManager<Usuario> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Meus Endereços</PageTitle>
+
+<div class="container py-5" style="max-width:640px;">
+    <h2 class="fw-bold mb-4">Meus Endereços</h2>
+
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert alert-@(erro ? "danger" : "success")">@mensagem</div>
+    }
+
+    @if (enderecos != null && enderecos.Any())
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var e in enderecos)
+            {
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm border-start border-4 @(e.Principal ? "border-danger" : "border-secondary")">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">@e.Local @(e.Principal ? "⭐" : "")</div>
+                                <div class="text-muted small">@e.Bairro · CEP @e.Cep</div>
+                                @if (!string.IsNullOrEmpty(e.Complemento))
+                                {
+                                    <div class="text-muted small">@e.Complemento</div>
+                                }
+                            </div>
+                            <div class="d-flex gap-2">
+                                @if (!e.Principal)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DefinirPrincipal(e.Id)">Principal</button>
+                                }
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => Excluir(e.Id)">Excluir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (enderecos != null)
+    {
+        <div class="alert alert-info mb-4">Nenhum endereço cadastrado.</div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold border-0 pt-4 px-4">Adicionar Endereço</div>
+        <div class="card-body p-4">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Logradouro</label>
+                <input class="form-control" @bind="novoLocal" placeholder="Ex: Rua das Flores, 123" />
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-8">
+                    <label class="form-label fw-semibold">Bairro</label>
+                    <input class="form-control" @bind="novoBairro" />
+                </div>
+                <div class="col-4">
+                    <label class="form-label fw-semibold">CEP</label>
+                    <input class="form-control" @bind="novoCep" placeholder="00000-000" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Complemento</label>
+                <input class="form-control" @bind="novoComplemento" placeholder="Apto, bloco..." />
+            </div>
+            <div class="form-check mb-4">
+                <input type="checkbox" class="form-check-input" @bind="novoPrincipal" id="chkPrincipal" />
+                <label class="form-check-label" for="chkPrincipal">Definir como endereço principal</label>
+            </div>
+            <button class="btn btn-lg w-100 fw-bold text-white" style="background-color:#e63946;"
+                    @onclick="AdicionarEndereco" disabled="@salvando">
+                @(salvando ? "Salvando..." : "Adicionar")
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Endereco>? enderecos;
+    private Guid usuarioId;
+    private string mensagem = "", novoLocal = "", novoBairro = "", novoCep = "", novoComplemento = "";
+    private bool erro = false, salvando = false, novoPrincipal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var usuario = await UserManager.GetUserAsync(authState.User);
+        if (usuario != null) { usuarioId = usuario.Id; await Carregar(); }
+    }
+
+    private async Task Carregar() =>
+        enderecos = await Db.Enderecos.Where(e => e.UsuarioId == usuarioId).ToListAsync();
+
+    private async Task AdicionarEndereco()
+    {
+        if (string.IsNullOrWhiteSpace(novoLocal) || string.IsNullOrWhiteSpace(novoCep))
+        {
+            mensagem = "Logradouro e CEP são obrigatórios."; erro = true; return;
+        }
+        salvando = true;
+        if (novoPrincipal)
+        {
+            var atuais = await Db.Enderecos.Where(e => e.UsuarioId == usuarioId && e.Principal).ToListAsync();
+            atuais.ForEach(e => e.Principal = false);
+        }
+        Db.Enderecos.Add(new Endereco { UsuarioId = usuarioId, Local = novoLocal, Bairro = novoBairro, Cep = novoCep, Complemento = novoComplemento, Principal = novoPrincipal });
+        await Db.SaveChangesAsync();
+        novoLocal = novoBairro = novoCep = novoComplemento = ""; novoPrincipal = false;
+        mensagem = "Endereço adicionado!"; erro = false; salvando = false;
+        await Carregar();
+    }
+
+    private async Task Excluir(Guid id)
+    {
+        var e = await Db.Enderecos.FindAsync(id);
+        if (e != null) { Db.Enderecos.Remove(e); await Db.SaveChangesAsync(); }
+        mensagem = "Endereço removido."; erro = false; await Carregar();
+    }
+
+    private async Task DefinirPrincipal(Guid id)
+    {
+        var todos = await Db.Enderecos.Where(e => e.UsuarioId == usuarioId).ToListAsync();
+        todos.ForEach(e => e.Principal = e.Id == id);
+        await Db.SaveChangesAsync();
+        mensagem = "Endereço principal atualizado."; erro = false; await Carregar();
+    }
+}

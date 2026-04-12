@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Auto_20260410000819 : Migration
+    public partial class Auto_20260412124657 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -54,18 +54,6 @@ namespace WebApplication1.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Atendimentos",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Atendimentos", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Cardapios",
                 columns: table => new
                 {
@@ -76,6 +64,23 @@ namespace WebApplication1.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Cardapios", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConfiguracoesDelivery",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Tipo = table.Column<int>(type: "int", nullable: false),
+                    NomeApp = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ComissaoPorcentagem = table.Column<int>(type: "int", nullable: true),
+                    TaxaAdicionalApp = table.Column<float>(type: "real", nullable: true),
+                    TaxaFixaProprio = table.Column<float>(type: "real", nullable: true),
+                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConfiguracoesDelivery", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -358,6 +363,44 @@ namespace WebApplication1.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Atendimentos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    PedidoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TipoAtendimento = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    NomeApp = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ComissaoPorcentagem = table.Column<float>(type: "real", nullable: true),
+                    TaxaAdicional = table.Column<float>(type: "real", nullable: true),
+                    TaxaFixa = table.Column<float>(type: "real", nullable: true),
+                    EnderecoEntregaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    MesaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Atendimentos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Atendimentos_Enderecos_EnderecoEntregaId",
+                        column: x => x.EnderecoEntregaId,
+                        principalTable: "Enderecos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Atendimentos_Mesas_MesaId",
+                        column: x => x.MesaId,
+                        principalTable: "Mesas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Atendimentos_Pedidos_PedidoId",
+                        column: x => x.PedidoId,
+                        principalTable: "Pedidos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ItensPedido",
                 columns: table => new
                 {
@@ -418,6 +461,22 @@ namespace WebApplication1.Data.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Atendimentos_EnderecoEntregaId",
+                table: "Atendimentos",
+                column: "EnderecoEntregaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Atendimentos_MesaId",
+                table: "Atendimentos",
+                column: "MesaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Atendimentos_PedidoId",
+                table: "Atendimentos",
+                column: "PedidoId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Cardapios_Data_Turno",
@@ -493,7 +552,7 @@ namespace WebApplication1.Data.Migrations
                 name: "Atendimentos");
 
             migrationBuilder.DropTable(
-                name: "Enderecos");
+                name: "ConfiguracoesDelivery");
 
             migrationBuilder.DropTable(
                 name: "ItensCardapio");
@@ -509,6 +568,9 @@ namespace WebApplication1.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Enderecos");
 
             migrationBuilder.DropTable(
                 name: "Cardapios");

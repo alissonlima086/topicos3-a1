@@ -1,0 +1,131 @@
+@model IEnumerable<WebApplication1.Models.AtendimentoPresencial>
+@using WebApplication1.Models
+@using WebApplication1.Models.Enums
+@{
+    ViewData["Title"] = "Atendimentos Presenciais";
+    var reservas = ViewBag.Reservas as IEnumerable<Reserva> ?? Enumerable.Empty<Reserva>();
+}
+
+<h2>🪑 Atendimentos Presenciais</h2>
+
+@if (TempData["Sucesso"] != null)
+{
+    <div class="alert alert-success">@TempData["Sucesso"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">+ Novo Atendimento</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhum atendimento presencial no momento.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Mesa</th>
+                <th>Itens</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td>Mesa @(a.Mesa?.Numero.ToString() ?? "-")</td>
+                    <td>
+                        @if (a.Pedido?.Itens != null && a.Pedido.Itens.Any())
+                        {
+                            <ul class="mb-0 ps-3">
+                                @foreach (var item in a.Pedido.Itens)
+                                {
+                                    <li>@item.Quantidade× @item.NomePrato — R$ @item.PrecoUnitario.ToString("F2")</li>
+                                }
+                            </ul>
+                        }
+                        else { <span class="text-muted">-</span> }
+                    </td>
+                    <td>
+                        @if (a.Pedido != null)
+                        {
+                            <strong>R$ @a.Pedido.PrecoTotal.ToString("F2")</strong>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge bg-@(a.Status == Status.Finalizado ? "success" : "warning text-dark")">
+                            @a.Status
+                        </span>
+                    </td>
+                    <td>
+                        @if (a.Status != Status.Finalizado)
+                        {
+                            <a asp-action="AdicionarItens" asp-route-id="@a.Id"
+                               class="btn btn-sm btn-primary me-1">+ Itens</a>
+                            <form asp-action="Finalizar" asp-route-id="@a.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Finalizar este atendimento?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">Finalizar</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Concluído</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+<h4>📅 Reservas</h4>
+
+@if (!reservas.Any())
+{
+    <div class="alert alert-info">Nenhuma reserva cadastrada.</div>
+}
+else
+{
+    <table class="table table-bordered align-middle">
+        <thead class="table-secondary">
+            <tr>
+                <th>Data</th>
+                <th>Horário</th>
+                <th>Mesa</th>
+                <th>Pessoas</th>
+                <th>Cliente</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in reservas.OrderBy(r => r.Data).ThenBy(r => r.HorarioInicio))
+            {
+                <tr>
+                    <td>@r.Data.ToString("dd/MM/yyyy")</td>
+                    <td>@r.HorarioInicio.ToString("HH:mm") – @r.HorarioFim.ToString("HH:mm")</td>
+                    <td>Mesa @(r.Mesa?.Numero.ToString() ?? "-")</td>
+                    <td>@r.NumeroPessoas</td>
+                    <td>@(r.Usuario?.Nome ?? r.UsuarioId.ToString())</td>
+                    <td>
+                        <span class="badge bg-@(r.Status switch {
+                            Status.Confirmado => "success",
+                            Status.Cancelado => "danger",
+                            Status.Finalizado => "secondary",
+                            _ => "warning text-dark"
+                        })">@r.Status</span>
+                    </td>
+                    <td>
+                        <a asp-controller="Reserva" asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-warning">Editar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

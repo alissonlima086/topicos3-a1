@@ -22,7 +22,11 @@ namespace WebApplication1.Data
         public DbSet<ItemCardapio> ItensCardapio { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
+        public DbSet<ConfiguracaoDelivery> ConfiguracoesDelivery { get; set; }
         public DbSet<Atendimento> Atendimentos { get; set; }
+        public DbSet<AtendimentoPresencial> AtendimentosPresenciais { get; set; }
+        public DbSet<AtendimentoDeliveryProprio> AtendimentosDeliveryProprio { get; set; }
+        public DbSet<AtendimentoDeliveryApp> AtendimentosDeliveryApp { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -74,6 +78,13 @@ namespace WebApplication1.Data
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Pedido -> Atendimento (1:1)
+            modelBuilder.Entity<Pedido>()
+                .HasOne(p => p.Atendimento)
+                .WithOne(a => a.Pedido)
+                .HasForeignKey<Atendimento>(a => a.PedidoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Reserva -> Mesa
             modelBuilder.Entity<Reserva>()
                 .HasOne(r => r.Mesa)
@@ -94,6 +105,30 @@ namespace WebApplication1.Data
                 .WithMany()
                 .HasForeignKey(e => e.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Heranca
+            modelBuilder.Entity<Atendimento>()
+                .HasDiscriminator<string>("TipoAtendimento")
+                .HasValue<AtendimentoPresencial>("Presencial")
+                .HasValue<AtendimentoDeliveryProprio>("DeliveryProprio")
+                .HasValue<AtendimentoDeliveryApp>("DeliveryApp");
+
+            // AtendimentoPresencial -> Mesa
+            modelBuilder.Entity<AtendimentoPresencial>()
+                .HasOne(a => a.Mesa)
+                .WithMany()
+                .HasForeignKey(a => a.MesaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AtendimentoDeliveryProprio -> Endereco
+            modelBuilder.Entity<AtendimentoDeliveryProprio>()
+                .HasOne(a => a.EnderecoEntrega)
+                .WithMany()
+                .HasForeignKey(a => a.EnderecoEntregaId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+
         }
     }
 }
