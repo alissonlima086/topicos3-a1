@@ -7,7 +7,7 @@
         ?? new List<WebApplication1.Models.ConfiguracaoDelivery>();
 }
 
-<h2>🛒 Novo Pedido</h2>
+<h2 class="d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined">shopping_cart</span> Novo Pedido</h2>
 <hr />
 
 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -41,14 +41,14 @@
     @if (cardapio == null || !cardapio.Itens.Any())
     {
         <div class="alert alert-warning">
-            ⚠️ Nenhum cardápio disponível para o turno <strong>@turno</strong>.
+            <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">warning</span> Nenhum cardápio disponível para o turno <strong>@turno</strong>.
             <a asp-controller="Cardapio" asp-action="Index" class="alert-link">Gerar cardápio</a>
         </div>
     }
     else
     {
-        <h5>🍽️ Pratos do Cardápio — <span class="text-muted">@turno</span></h5>
-        <p class="text-muted small">⭐ Sugestão do Chef tem 20% de desconto aplicado automaticamente.</p>
+        <h5 class="d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:1.2rem;">restaurant</span> Pratos do Cardápio — <span class="text-muted">@turno</span></h5>
+        <p class="text-muted small"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> Sugestão do Chef tem 20% de desconto aplicado automaticamente.</p>
 
         <div class="row g-3 mb-4">
             @{ int idx = 0; }
@@ -62,7 +62,7 @@
                         {
                             <div class="py-1 text-center fw-bold small"
                                  style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;">
-                                ⭐ SUGESTÃO DO CHEF — 20% OFF
+                                <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> SUGESTÃO DO CHEF — 20% OFF
                             </div>
                         }
                         <div class="card-body pb-2">

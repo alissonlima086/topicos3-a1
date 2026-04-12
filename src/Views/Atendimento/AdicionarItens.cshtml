@@ -7,7 +7,7 @@
     var turno = ViewBag.TurnoAtual as string;
 }
 
-<h2>🍽️ Adicionar Itens — Mesa @(Model.Mesa?.Numero)</h2>
+<h2 class="d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined">restaurant</span> Adicionar Itens — Mesa @(Model.Mesa?.Numero)</h2>
 <p class="text-muted">Turno atual: <strong>@turno</strong></p>
 <hr />
 
@@ -25,7 +25,7 @@
                     @foreach (var it in Model.Pedido.Itens)
                     {
                         <tr>
-                            <td>@it.NomePrato @(it.FoiSugestao ? "⭐" : "")</td>
+                            <td>@it.NomePrato @(it.FoiSugestao ? "<span class=\"material-symbols-outlined\" style=\"font-size:1rem;vertical-align:middle;\">star</span>" : "")</td>
                             <td>@it.Quantidade</td>
                             <td>R$ @it.PrecoUnitario.ToString("F2")</td>
                             <td>R$ @((it.PrecoUnitario * it.Quantidade).ToString("F2"))</td>
@@ -46,13 +46,13 @@
 @if (cardapio == null || !cardapio.Itens.Any())
 {
     <div class="alert alert-warning">
-        ⚠️ Nenhum cardápio disponível para o turno <strong>@turno</strong>.
+        <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">warning</span> Nenhum cardápio disponível para o turno <strong>@turno</strong>.
         <a asp-controller="Cardapio" asp-action="Index" class="alert-link">Gerar cardápio</a>
     </div>
 }
 else
 {
-    <p class="text-muted small mb-3">⭐ Sugestão do Chef tem <strong>20% de desconto</strong> aplicado automaticamente.</p>
+    <p class="text-muted small mb-3"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> Sugestão do Chef tem <strong>20% de desconto</strong> aplicado automaticamente.</p>
 
     <form asp-action="AdicionarItens" asp-route-id="@Model.Id" method="post">
         @Html.AntiForgeryToken()
@@ -70,7 +70,7 @@ else
                         {
                             <div class="py-1 text-center fw-bold small"
                                  style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;">
-                                ⭐ SUGESTÃO DO CHEF — 20% OFF
+                                <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> SUGESTÃO DO CHEF — 20% OFF
                             </div>
                         }
                         <div class="card-body pb-2">
@@ -111,7 +111,7 @@ else
             <strong id="totalNovo">R$ 0,00</strong>
         </div>
 
-        <button type="submit" class="btn btn-success">✅ Lançar Itens</button>
+        <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:1.1rem;">check_circle</span> Lançar Itens</button>
         <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
     </form>
 }

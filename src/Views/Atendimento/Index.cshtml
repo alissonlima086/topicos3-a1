@@ -6,7 +6,7 @@
     var reservas = ViewBag.Reservas as IEnumerable<Reserva> ?? Enumerable.Empty<Reserva>();
 }
 
-<h2>🪑 Atendimentos Presenciais</h2>
+<h2 class="d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined">chair</span> Atendimentos Presenciais</h2>
 
 @if (TempData["Sucesso"] != null)
 {
@@ -84,7 +84,7 @@ else
 }
 
 <hr />
-<h4>📅 Reservas</h4>
+<h4 class="d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined">calendar_month</span> Reservas</h4>
 
 @if (!reservas.Any())
 {
