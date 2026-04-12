@@ -18,7 +18,7 @@ public static class SeedData
         }
 
         string email = "admin@teste.com";
-        string senha = "Admin@123";
+        string senha = "admin123";
 
         var user = await userManager.FindByEmailAsync(email);
         if (user == null)
