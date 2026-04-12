@@ -36,7 +36,7 @@ namespace WebApplication1.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Descricao,PrecoBase,Ativo")] Prato prato)
+        public async Task<IActionResult> Create([Bind("Id,Nome,Descricao,PrecoBase,Ativo,Turno")] Prato prato)
         {
             if (ModelState.IsValid)
             {
@@ -76,7 +76,8 @@ namespace WebApplication1.Controllers
                     Nome = vm.Nome,
                     Descricao = vm.Descricao,
                     PrecoBase = vm.PrecoBase,
-                    Ativo = vm.Ativo
+                    Ativo = vm.Ativo,
+                    Turno = vm.Turno
                 };
 
                 try
@@ -99,6 +100,7 @@ namespace WebApplication1.Controllers
             vmReload.Descricao = vm.Descricao;
             vmReload.PrecoBase = vm.PrecoBase;
             vmReload.Ativo = vm.Ativo;
+            vmReload.Turno = vm.Turno;
             return View(vmReload);
         }
 

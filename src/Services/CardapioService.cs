@@ -42,20 +42,17 @@ namespace WebApplication1.Services
             if (pratosAtivos.Count == 0)
                 return (null, "Nenhum prato ativo cadastrado para gerar o cardápio.");
 
-            // Apaga o cardápio anterior do mesmo turno/dia (cascade apaga os itens)
             var anterior = await _context.Cardapios
                 .FirstOrDefaultAsync(c => c.Data.Date == data.Date && c.Turno == turno);
 
             if (anterior != null)
                 _context.Cardapios.Remove(anterior);
 
-            // Sorteia até 20 pratos sem repetição
             var sorteados = pratosAtivos
                 .OrderBy(_ => _rng.Next())
                 .Take(Math.Min(20, pratosAtivos.Count))
                 .ToList();
 
-            // Marca 1 aleatório como sugestão do chef
             var sugestaoIdx = _rng.Next(sorteados.Count);
 
             var cardapio = new Cardapio
@@ -72,7 +69,6 @@ namespace WebApplication1.Services
             _context.Cardapios.Add(cardapio);
             await _context.SaveChangesAsync();
 
-            // Recarrega com includes para retornar completo
             return (await BuscarAtualAsync(data, turno), null);
         }
     }

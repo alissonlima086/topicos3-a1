@@ -66,6 +66,10 @@ namespace WebApplication1.Services
 
         public async Task<(Reserva? reserva, string? erro)> CriarAsync(Reserva reserva)
         {
+            var hora = reserva.HorarioInicio.Hour;
+            if (hora < 18)
+                return (null, "Reservas só podem ser feitas para o jantar (a partir das 18h).");
+
             var mesaExiste = await _context.Mesas.AnyAsync(m => m.Id == reserva.MesaId);
             if (!mesaExiste)
                 return (null, "Mesa não encontrada.");
@@ -86,10 +90,19 @@ namespace WebApplication1.Services
 
         public async Task<Reserva?> EditarAsync(Guid id, Reserva reserva)
         {
-            if (!Existe(id)) return null;
-            _context.Update(reserva);
+            var existente = await _context.Reservas.FindAsync(id);
+            if (existente == null) return null;
+
+            existente.Data = reserva.Data;
+            existente.HorarioInicio = reserva.HorarioInicio;
+            existente.HorarioFim = reserva.HorarioFim;
+            existente.NumeroPessoas = reserva.NumeroPessoas;
+            existente.MesaId = reserva.MesaId;
+            existente.UsuarioId = reserva.UsuarioId;
+            existente.Status = reserva.Status;
+
             await _context.SaveChangesAsync();
-            return reserva;
+            return existente;
         }
 
         public async Task<bool> ExcluirAsync(Guid id)

@@ -57,6 +57,7 @@ namespace WebApplication1.Services
                 Descricao = prato.Descricao,
                 PrecoBase = prato.PrecoBase,
                 Ativo = prato.Ativo,
+                Turno = prato.Turno,
                 Ingredientes = todosIngredientes.Select(i => new IngredienteSelecaoViewModel
                 {
                     Id = i.Id,
@@ -81,13 +82,18 @@ namespace WebApplication1.Services
 
         public async Task<Prato?> EditarAsync(Guid id, Prato prato, List<Guid> ingredientesSelecionados)
         {
-            if (!Existe(id)) return null;
+            var existente = await _context.Pratos.FindAsync(id);
+            if (existente == null) return null;
+
+            existente.Nome = prato.Nome;
+            existente.Descricao = prato.Descricao;
+            existente.PrecoBase = prato.PrecoBase;
+            existente.Ativo = prato.Ativo;
+            existente.Turno = prato.Turno;
 
             // Remove ingredientes antigos e insere os novos
             var antigas = _context.PratoIngredientes.Where(pi => pi.PratoId == id);
             _context.PratoIngredientes.RemoveRange(antigas);
-
-            _context.Update(prato);
 
             foreach (var ingId in ingredientesSelecionados)
             {
@@ -99,7 +105,7 @@ namespace WebApplication1.Services
             }
 
             await _context.SaveChangesAsync();
-            return prato;
+            return existente;
         }
 
         public async Task<bool> ExcluirAsync(Guid id)

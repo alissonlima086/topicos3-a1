@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260412184922_Auto_20260412184907")]
-    partial class Auto_20260412184907
+    [Migration("20260412194127_Auto_20260412194111")]
+    partial class Auto_20260412194111
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -418,6 +418,9 @@ namespace WebApplication1.Data.Migrations
 
                     b.Property<float>("PrecoBase")
                         .HasColumnType("real");
+
+                    b.Property<int>("Turno")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

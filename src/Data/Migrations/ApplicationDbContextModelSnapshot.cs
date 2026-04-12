@@ -416,6 +416,9 @@ namespace WebApplication1.Data.Migrations
                     b.Property<float>("PrecoBase")
                         .HasColumnType("real");
 
+                    b.Property<int>("Turno")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Pratos");

@@ -20,12 +20,12 @@
             <div class="row mb-3">
                 <div class="col">
                     <label asp-for="HoraInicio" class="control-label fw-semibold">Horário de Início</label>
-                    <input asp-for="HoraInicio" type="time" class="form-control" id="inputHoraInicio" />
+                    <input asp-for="HoraInicio" type="time" class="form-control" id="inputHoraInicio" min="18:00" />
                     <span asp-validation-for="HoraInicio" class="text-danger"></span>
                 </div>
                 <div class="col">
                     <label asp-for="HoraFim" class="control-label fw-semibold">Horário de Fim</label>
-                    <input asp-for="HoraFim" type="time" class="form-control" id="inputHoraFim" />
+                    <input asp-for="HoraFim" type="time" class="form-control" id="inputHoraFim" min="18:00" />
                     <span asp-validation-for="HoraFim" class="text-danger"></span>
                 </div>
             </div>

@@ -94,9 +94,8 @@
         var turno = ObterTurnoAtual();
         (turnoIcone, turnoAtual) = turno switch
         {
-            Turno.Manha => ("wb_sunny", "Café da Manhã"),
-            Turno.Tarde => ("partly_cloudy_day", "Almoço"),
-            Turno.Noite => ("nightlight", "Jantar"),
+            Turno.Almoco => ("partly_cloudy_day", "Almoço"),
+            Turno.Jantar => ("nightlight", "Jantar"),
             _ => ("nightlight", "Jantar")
         };
 
@@ -109,8 +108,8 @@
     private Turno ObterTurnoAtual()
     {
         var hora = DateTime.Now.Hour;
-        if (hora >= 6 && hora < 12) return Turno.Manha;
-        if (hora >= 12 && hora < 18) return Turno.Tarde;
+        if (hora >= 11 && hora < 13) return Turno.Almoco;
+        if (hora >= 13 && hora < 18) return Turno.Jantar;
         return Turno.Noite;
     }
 }
