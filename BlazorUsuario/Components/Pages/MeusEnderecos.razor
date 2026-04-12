@@ -29,7 +29,15 @@
                     <div class="card border-0 shadow-sm border-start border-4 @(e.Principal ? "border-danger" : "border-secondary")">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="fw-bold">@e.Local @(e.Principal ? "⭐" : "")</div>
+                                <div class="fw-bold">
+                                    @e.Local
+                                    @if (e.Principal)
+                                    {
+                                        <span class="material-symbols-outlined" style="font-size:1.1rem; vertical-align:middle;">
+                                            star
+                                        </span>
+                                    }
+                                </div>
                                 <div class="text-muted small">@e.Bairro · CEP @e.Cep</div>
                                 @if (!string.IsNullOrEmpty(e.Complemento))
                                 {

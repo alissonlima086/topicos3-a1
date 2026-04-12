@@ -86,7 +86,7 @@ namespace WebApplication1.Controllers
         private static Turno TurnoAtual()
         {
             var h = DateTime.Now.Hour;
-            return h switch { >= 6 and < 12 => Turno.Manha, >= 12 and < 18 => Turno.Tarde, >= 18 => Turno.Noite, _ => Turno.Madrugada };
+            return h >= 13 && h < 18 ? Turno.Almoco : Turno.Jantar;
         }
     }
 }

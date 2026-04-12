@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Models.Enums;
 
 namespace WebApplication1.Models
 {
@@ -17,6 +18,9 @@ namespace WebApplication1.Models
 
     [Required]
     public bool Ativo { get; set; }
+
+    [Required]
+    public Turno Turno { get; set; }
 
     public ICollection<PratoIngrediente> PratoIngredientes { get; set; } = new List<PratoIngrediente>();
 

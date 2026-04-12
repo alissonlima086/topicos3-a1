@@ -43,16 +43,14 @@
             <div class="col-md-4">
                 <label class="form-label">Turno</label>
                 <select name="turno" class="form-control">
-                    @foreach (Turno t in Enum.GetValues(typeof(Turno)))
-                    {
-                        <option value="@((int)t)">@t</option>
-                    }
+                    <option value="0">Almoço</option>
+                    <option value="1">Jantar</option>
                 </select>
             </div>
 
             <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100">
-                    ⚡ Gerar Cardápio
+                <button type="submit" class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center gap-1">
+                    <span class="material-symbols-outlined" style="font-size:1.1rem;">bolt</span> Gerar Cardápio
                 </button>
             </div>
         </form>
@@ -70,7 +68,7 @@ else
     {
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <strong>@cardapio.Data.ToString("dd/MM/yyyy") — @cardapio.Turno</strong>
+                <strong>@cardapio.Data.ToString("dd/MM/yyyy") — @(cardapio.Turno == WebApplication1.Models.Enums.Turno.Almoco ? "Almoço" : "Jantar")</strong>
                 <span class="badge bg-secondary">@cardapio.Itens.Count pratos</span>
             </div>
             <div class="card-body p-0">
@@ -90,7 +88,7 @@ else
                                     @item.Prato?.Nome
                                     @if (item.IsSugestao)
                                     {
-                                        <span class="badge bg-warning text-dark ms-1">⭐ Sugestão</span>
+                                        <span class="badge bg-warning text-dark ms-1 d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:.85rem;">star</span> Sugestão</span>
                                     }
                                 </td>
                                 <td>R$ @item.Prato?.PrecoBase.ToString("F2")</td>

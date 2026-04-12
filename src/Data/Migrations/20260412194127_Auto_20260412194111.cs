@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Auto_20260412124657 : Migration
+    public partial class Auto_20260412194111 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -118,7 +118,8 @@ namespace WebApplication1.Data.Migrations
                     Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Descricao = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PrecoBase = table.Column<float>(type: "real", nullable: false),
-                    Ativo = table.Column<bool>(type: "bit", nullable: false)
+                    Ativo = table.Column<bool>(type: "bit", nullable: false),
+                    Turno = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

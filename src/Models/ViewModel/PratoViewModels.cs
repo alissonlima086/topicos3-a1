@@ -7,8 +7,7 @@ namespace WebApplication1.Models.ViewModels
         public string Descricao { get; set; } = string.Empty;
         public float PrecoBase { get; set; }
         public bool Ativo { get; set; }
-
-        // Todos os ingredientes disponíveis com flag se está selecionado
+        public WebApplication1.Models.Enums.Turno Turno { get; set; }
         public List<IngredienteSelecaoViewModel> Ingredientes { get; set; } = new();
     }
 

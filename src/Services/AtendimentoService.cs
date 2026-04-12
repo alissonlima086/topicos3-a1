@@ -87,7 +87,7 @@ namespace WebApplication1.Services
             var validos = selecionados.Where(s => s.Quantidade > 0).ToList();
             if (!validos.Any()) return (false, "Nenhum item com quantidade informada.");
 
-            // Carrega os ItemCardapio com Prato para resolver nome/preço/sugestão
+            // Carrega os ItemCardapio referenciando os pratos para calcular preço e nome
             var ids = validos.Select(s => s.ItemCardapioId).ToList();
             var itensCardapio = await _context.ItensCardapio
                 .Include(ic => ic.Prato)
@@ -111,7 +111,6 @@ namespace WebApplication1.Services
                 });
             }
 
-            // Recalcula total somando todos os itens (existentes + novos já rastreados)
             await _context.SaveChangesAsync();
 
             var todosItens = await _context.ItensPedido

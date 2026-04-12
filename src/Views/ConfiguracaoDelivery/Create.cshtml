@@ -4,7 +4,7 @@
     bool jaTemProprio = ViewBag.JaTemProprio ?? false;
 }
 
-<h2>🚚 Nova Configuração de Delivery</h2>
+<h2 class="d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined">local_shipping</span> Nova Configuração de Delivery</h2>
 <hr />
 
 <div class="row">
@@ -19,7 +19,7 @@
                 </select>
                 @if (jaTemProprio)
                 {
-                    <div class="text-warning small mt-1">⚠️ Já existe um delivery próprio. Você só pode criar do tipo App.</div>
+                    <div class="text-warning small mt-1 d-inline-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:1rem;">warning</span> Já existe um delivery próprio. Você só pode criar do tipo App.</div>
                 }
             </div>
 

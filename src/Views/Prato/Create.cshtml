@@ -1,4 +1,5 @@
 @model WebApplication1.Models.Prato
+@using WebApplication1.Models.Enums
 
 @{
     ViewData["Title"] = "Novo Prato";
@@ -28,6 +29,12 @@
                 <label asp-for="PrecoBase" class="control-label"></label>
                 <input asp-for="PrecoBase" class="form-control" />
                 <span asp-validation-for="PrecoBase" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Turno" class="control-label"></label>
+                <select asp-for="Turno" asp-items="Html.GetEnumSelectList<Turno>()" class="form-select"></select>
+                <span asp-validation-for="Turno" class="text-danger"></span>
             </div>
 
             <div class="form-group form-check mt-2">

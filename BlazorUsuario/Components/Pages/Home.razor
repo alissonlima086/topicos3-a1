@@ -12,7 +12,10 @@
     <div class="container">
         <h1 class="display-4 fw-bold">Bem-vindo ao <span style="color:#e63946;">Restaurante</span></h1>
         <p class="lead text-secondary">Confira o cardápio de hoje</p>
-        <span class="badge fs-6 px-3 py-2" style="background-color:#e63946;">@turnoAtual</span>
+        <span class="badge fs-6 px-3 py-2 d-inline-flex align-items-center gap-1" style="background-color:#e63946;">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">@turnoIcone</span>
+            @turnoAtual
+        </span>
     </div>
 </div>
 
@@ -26,21 +29,12 @@
     else if (!cardapio.Itens.Any())
     {
         <div class="text-center py-5">
-            <span style="font-size:4rem;">🍽️</span>
+            <span class="material-symbols-outlined" style="font-size:4rem;">restaurant</span>
             <h4 class="mt-3 text-muted">Nenhum prato disponível neste turno.</h4>
         </div>
     }
     else
     {
-        @if (cardapio.Itens.Any(i => i.IsSugestao))
-        {
-            <div class="alert d-flex align-items-center gap-2 mb-4"
-                 style="background:#fff8e1; border-left:4px solid #f59e0b; color:#92400e;">
-                <span style="font-size:1.4rem;">⭐</span>
-                <span><strong>Sugestão do Chef:</strong> o prato destacado tem <strong>20% de desconto</strong> hoje!</span>
-            </div>
-        }
-
         <div class="row g-4">
             @foreach (var item in cardapio.Itens.OrderByDescending(i => i.IsSugestao))
             {
@@ -52,9 +46,10 @@
 
                         @if (item.IsSugestao)
                         {
-                            <div class="text-center py-1 fw-bold"
-                                 style="background:linear-gradient(135deg,#f59e0b,#d97706); color:white; font-size:.85rem; letter-spacing:.04em;">
-                                ⭐ SUGESTÃO DO CHEF — 20% OFF
+                            <div class="d-flex align-items-center justify-content-center gap-1 fw-bold py-1"
+                                style="background:linear-gradient(135deg,#f59e0b,#d97706); color:white; font-size:.85rem; letter-spacing:.04em;">
+                                <span class="material-symbols-outlined" style="font-size:1rem;">star</span>
+                                <span>SUGESTÃO DO CHEF — 20% OFF</span>
                             </div>
                         }
 
@@ -92,16 +87,16 @@
 @code {
     private Cardapio? cardapio;
     private string turnoAtual = "";
+    private string turnoIcone = "";
 
     protected override async Task OnInitializedAsync()
     {
         var turno = ObterTurnoAtual();
-        turnoAtual = turno switch
+        (turnoIcone, turnoAtual) = turno switch
         {
-            Turno.Manha => "☀️ Café da Manhã",
-            Turno.Tarde => "🌤️ Almoço",
-            Turno.Noite => "🌙 Jantar",
-            _ => "🌙 Jantar"
+            Turno.Almoco => ("partly_cloudy_day", "Almoço"),
+            Turno.Jantar => ("nightlight", "Jantar"),
+            _ => ("nightlight", "Jantar")
         };
 
         cardapio = await Db.Cardapios
@@ -113,8 +108,8 @@
     private Turno ObterTurnoAtual()
     {
         var hora = DateTime.Now.Hour;
-        if (hora >= 6 && hora < 12) return Turno.Manha;
-        if (hora >= 12 && hora < 18) return Turno.Tarde;
+        if (hora >= 11 && hora < 13) return Turno.Almoco;
+        if (hora >= 13 && hora < 18) return Turno.Jantar;
         return Turno.Noite;
     }
 }

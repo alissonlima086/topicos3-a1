@@ -68,6 +68,9 @@ namespace WebApplication1.Controllers
             if (horarioFim != default && horarioInicio != default && horarioFim <= horarioInicio)
                 ModelState.AddModelError("HoraFim", "O horário de fim deve ser posterior ao de início.");
 
+            if (horarioInicio != default && horarioInicio.Hour < 18)
+                ModelState.AddModelError("HoraInicio", "Reservas só podem ser feitas para o jantar (a partir das 18h).");
+
             Guid? usuarioId = vm.UsuarioId;
             if (usuarioId == null && !string.IsNullOrWhiteSpace(vm.UsuarioCpf))
             {

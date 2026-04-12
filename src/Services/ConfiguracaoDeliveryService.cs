@@ -37,9 +37,16 @@ namespace WebApplication1.Services
         {
             var existente = await _context.ConfiguracoesDelivery.FindAsync(id);
             if (existente == null) return null;
-            _context.Update(config);
+
+            existente.Tipo = config.Tipo;
+            existente.NomeApp = config.NomeApp;
+            existente.ComissaoPorcentagem = config.ComissaoPorcentagem;
+            existente.TaxaAdicionalApp = config.TaxaAdicionalApp;
+            existente.TaxaFixaProprio = config.TaxaFixaProprio;
+            existente.Ativo = config.Ativo;
+
             await _context.SaveChangesAsync();
-            return config;
+            return existente;
         }
 
         public async Task<bool> ExcluirAsync(Guid id)

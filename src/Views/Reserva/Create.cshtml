@@ -20,12 +20,12 @@
             <div class="row mb-3">
                 <div class="col">
                     <label asp-for="HoraInicio" class="control-label fw-semibold">Horário de Início</label>
-                    <input asp-for="HoraInicio" type="time" class="form-control" id="inputHoraInicio" />
+                    <input asp-for="HoraInicio" type="time" class="form-control" id="inputHoraInicio" min="18:00" />
                     <span asp-validation-for="HoraInicio" class="text-danger"></span>
                 </div>
                 <div class="col">
                     <label asp-for="HoraFim" class="control-label fw-semibold">Horário de Fim</label>
-                    <input asp-for="HoraFim" type="time" class="form-control" id="inputHoraFim" />
+                    <input asp-for="HoraFim" type="time" class="form-control" id="inputHoraFim" min="18:00" />
                     <span asp-validation-for="HoraFim" class="text-danger"></span>
                 </div>
             </div>
@@ -120,7 +120,7 @@
 
                 if (json.conflito) {
                     conflitoPendente = true;
-                    let msg = '⚠️ Esta mesa já está reservada neste horário.';
+                    let msg = 'Esta mesa já está reservada neste horário.';
                     if (json.ocupadas && json.ocupadas.length > 0) {
                         const lista = json.ocupadas.map(o => `${o.ini}–${o.fim}`).join(', ');
                         msg += ` Horários ocupados: ${lista}.`;
@@ -129,11 +129,11 @@
                     btnSubmit.disabled = true;
                 } else if (json.erro) {
                     conflitoPendente = false;
-                    mostrarAlerta('ℹ️ ' + json.erro, 'info');
+                    mostrarAlerta(json.erro, 'info');
                     btnSubmit.disabled = false;
                 } else {
                     conflitoPendente = false;
-                    mostrarAlerta('✓ Horário disponível.', 'success');
+                    mostrarAlerta('Horário disponível.', 'success');
                     btnSubmit.disabled = false;
                 }
             } catch {
@@ -158,7 +158,7 @@
             const data = await res.json();
             const div = document.getElementById('usuarioFeedback');
             if (data.encontrado) {
-                div.innerHTML = `<span class="text-success">✓ ${data.nome}</span>`;
+                div.innerHTML = `<span class="text-success"><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">check</span> ${data.nome}</span>`;
             } else {
                 div.innerHTML = `<span class="text-danger">Usuário não encontrado.</span>`;
             }
