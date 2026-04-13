@@ -1,0 +1,239 @@
+@model WebApplication1.Models.ViewModel.RelatorioViewModel
+@using WebApplication1.Models.ViewModel
+@{
+    ViewData["Title"] = "Relatórios";
+}
+
+<h2 class="d-inline-flex align-items-center gap-1 mb-3">
+    <span class="material-symbols-outlined">bar_chart</span> Relatórios
+</h2>
+
+@* ── Filtros ── *@
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="Filtrar" method="post" class="row g-3 align-items-end">
+            @Html.AntiForgeryToken()
+            <div class="col-auto">
+                <label class="form-label fw-semibold">Período pré-definido</label>
+                <select asp-for="Periodo" asp-items="Html.GetEnumSelectList<PeriodoRelatorio>()" class="form-select"></select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label fw-semibold">De</label>
+                <input type="date" name="dataInicio" class="form-control"
+                       value="@Model.DataInicio.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label fw-semibold">Até</label>
+                <input type="date" name="dataFim" class="form-control"
+                       value="@Model.DataFim.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">search</span>
+                    Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ── Cards de resumo ── *@
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <div class="card-body p-0">Faturamento Total no Período</div>
+                <div class="fs-4 fw-bold">R$ @Model.FaturamentoTotal.ToString("N2")</div>
+                <div class="card-body p-0">
+                    @Model.DataInicio.ToString("dd/MM/yyyy") – @Model.DataFim.ToString("dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <div class="card-body p-0">Número de Pedidos Concluídos</div>
+                <div class="fs-4 fw-bold">@Model.TotalPedidos pedidos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-bg-secondary">
+            <div class="card-body">
+                <div class="card-body p-0">Valor Médio por Pedido</div>
+                <div class="fs-4 fw-bold">
+                    R$ @((Model.TotalPedidos > 0 ? Model.FaturamentoTotal / Model.TotalPedidos : 0).ToString("N2"))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Faturamento por tipo de atendimento ── *@
+<div class="card mb-4">
+    <div class="card-header fw-semibold">
+        <span class="material-symbols-outlined" style="vertical-align:middle;">payments</span>
+        Faturamento por Tipo de Atendimento
+    </div>
+    <div class="card-body">
+        @if (!Model.FaturamentoPorTipo.Any())
+        {
+            <div class="alert alert-info mb-0">Nenhum pedido concluído no período selecionado.</div>
+        }
+        else
+        {
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Tipo de Atendimento</th>
+                                <th class="text-end">Qtd. de Pedidos</th>
+                                <th class="text-end">Faturamento (R$)</th>
+                                <th class="text-end">Participação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in Model.FaturamentoPorTipo)
+                            {
+                                var pct = Model.FaturamentoTotal > 0
+                                    ? f.Total / Model.FaturamentoTotal * 100 : 0;
+                                <tr>
+                                    <td>@f.TipoAtendimento</td>
+                                    <td class="text-end">@f.Quantidade</td>
+                                    <td class="text-end">R$ @f.Total.ToString("N2")</td>
+                                    <td class="text-end">@pct.ToString("N1")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-secondary fw-bold">
+                            <tr>
+                                <td>Total geral</td>
+                                <td class="text-end">@Model.TotalPedidos pedidos</td>
+                                <td class="text-end">R$ @Model.FaturamentoTotal.ToString("N2")</td>
+                                <td class="text-end">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="col-md-5 d-flex justify-content-center mt-3 mt-md-0">
+                    <canvas id="chartFaturamento" width="260" height="260"></canvas>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@* ── Itens e sugestões mais vendidos ── *@
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <span class="material-symbols-outlined" style="vertical-align:middle;">trending_up</span>
+                Itens Mais Vendidos — Cardápio Regular
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.ItensMaisVendidos.Any())
+                {
+                    <div class="p-3 text-muted">Nenhum item do cardápio vendido no período.</div>
+                }
+                else
+                {
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th style="width:2rem">#</th>
+                                <th>Nome do Prato</th>
+                                <th class="text-end">Unidades Vendidas</th>
+                                <th class="text-end">Receita Total (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rank = 1; }
+                            @foreach (var item in Model.ItensMaisVendidos)
+                            {
+                                <tr>
+                                    <td class="text-muted">@rank</td>
+                                    <td>@item.NomePrato</td>
+                                    <td class="text-end">@item.TotalVendido un.</td>
+                                    <td class="text-end">R$ @item.ReceitaTotal.ToString("N2")</td>
+                                </tr>
+                                rank++;
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <span class="material-symbols-outlined" style="vertical-align:middle;">star</span>
+                Sugestões do Chef Mais Vendidas
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.SugestoesMaisVendidas.Any())
+                {
+                    <div class="p-3 text-muted">Nenhuma sugestão do chef vendida no período.</div>
+                }
+                else
+                {
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th style="width:2rem">#</th>
+                                <th>Nome da Sugestão</th>
+                                <th class="text-end">Unidades Vendidas</th>
+                                <th class="text-end">Receita Total (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rankS = 1; }
+                            @foreach (var item in Model.SugestoesMaisVendidas)
+                            {
+                                <tr>
+                                    <td class="text-muted">@rankS</td>
+                                    <td>@item.NomePrato</td>
+                                    <td class="text-end">@item.TotalVendido un.</td>
+                                    <td class="text-end">R$ @item.ReceitaTotal.ToString("N2")</td>
+                                </tr>
+                                rankS++;
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var dados = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.FaturamentoPorTipo.Select(f => new { label = f.TipoAtendimento, value = f.Total })
+    ));
+    if (!dados.length) return;
+    var ctx = document.getElementById('chartFaturamento');
+    if (!ctx) return;
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: dados.map(d => d.label),
+            datasets: [{
+                data: dados.map(d => d.value),
+                backgroundColor: ['#198754','#0d6efd','#ffc107','#dc3545','#6c757d','#0dcaf0']
+            }]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } },
+            responsive: false
+        }
+    });
+})();
+</script>
+}

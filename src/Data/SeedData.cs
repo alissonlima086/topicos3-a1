@@ -477,40 +477,122 @@ public static class SeedData
         // ── Pedidos históricos ────────────────────────────────────────────────
         if (usuarios.Count >= 2)
         {
+            // Busca as configurações de delivery para linkar os atendimentos
+            var cfgProprio = configDelivery.FirstOrDefault(c => c.Tipo == TipoDelivery.Proprio);
+            var cfgIfood   = configDelivery.FirstOrDefault(c => c.NomeApp == "iFood");
+            var cfgRappi   = configDelivery.FirstOrDefault(c => c.NomeApp == "Rappi");
+
+            // Pedido 1 — Delivery Próprio, entregue há 3 dias
             var pedido1 = new Pedido
             {
                 UsuarioId   = usuarios[0].Id,
                 DataHora    = DateTime.Now.AddDays(-3),
                 Status      = Status.Entregue,
-                TaxaEntrega = 5.00f,
+                TaxaEntrega = cfgProprio?.TaxaFixaProprio ?? 5.00f,
                 PrecoTotal  = 0f
             };
+
+            // Pedido 2 — iFood, entregue há 2 dias
             var pedido2 = new Pedido
             {
                 UsuarioId   = usuarios[1].Id,
-                DataHora    = DateTime.Now.AddHours(-2),
-                Status      = Status.Pendente,
-                TaxaEntrega = 0f,
+                DataHora    = DateTime.Now.AddDays(-2),
+                Status      = Status.Entregue,
+                TaxaEntrega = cfgIfood?.TaxaAdicionalApp ?? 2.50f,
                 PrecoTotal  = 0f
             };
-            context.Pedidos.AddRange(pedido1, pedido2);
+
+            // Pedido 3 — Rappi, entregue ontem
+            var pedido3 = new Pedido
+            {
+                UsuarioId   = usuarios[0].Id,
+                DataHora    = DateTime.Now.AddDays(-1),
+                Status      = Status.Entregue,
+                TaxaEntrega = cfgRappi?.TaxaAdicionalApp ?? 3.00f,
+                PrecoTotal  = 0f
+            };
+
+            // Pedido 4 — Delivery Próprio, entregue hoje cedo
+            var pedido4 = new Pedido
+            {
+                UsuarioId   = usuarios[1].Id,
+                DataHora    = DateTime.Now.AddHours(-5),
+                Status      = Status.Entregue,
+                TaxaEntrega = cfgProprio?.TaxaFixaProprio ?? 5.00f,
+                PrecoTotal  = 0f
+            };
+
+            context.Pedidos.AddRange(pedido1, pedido2, pedido3, pedido4);
             await context.SaveChangesAsync();
 
+            // Itens de cada pedido
             var itens1 = new[]
             {
                 new ItemPedido { PedidoId = pedido1.Id, NomePrato = pratosAlmoco[0].Nome, Quantidade = 2, PrecoUnitario = pratosAlmoco[0].PrecoBase, FoiSugestao = false, Observacao = "Sem alface" },
-                new ItemPedido { PedidoId = pedido1.Id, NomePrato = pratosJantar[2].Nome, Quantidade = 1, PrecoUnitario = pratosJantar[2].PrecoBase, FoiSugestao = true,  Observacao = ""           },
+                new ItemPedido { PedidoId = pedido1.Id, NomePrato = pratosJantar[2].Nome, Quantidade = 1, PrecoUnitario = pratosJantar[2].PrecoBase, FoiSugestao = true,  Observacao = "" },
             };
             var itens2 = new[]
             {
-                new ItemPedido { PedidoId = pedido2.Id, NomePrato = pratosJantar[0].Nome, Quantidade = 1, PrecoUnitario = pratosJantar[0].PrecoBase, FoiSugestao = false, Observacao = ""           },
+                new ItemPedido { PedidoId = pedido2.Id, NomePrato = pratosJantar[0].Nome, Quantidade = 1, PrecoUnitario = pratosJantar[0].PrecoBase, FoiSugestao = false, Observacao = "" },
                 new ItemPedido { PedidoId = pedido2.Id, NomePrato = pratosAlmoco[2].Nome, Quantidade = 2, PrecoUnitario = pratosAlmoco[2].PrecoBase, FoiSugestao = true,  Observacao = "Bem cozido" },
             };
+            var itens3 = new[]
+            {
+                new ItemPedido { PedidoId = pedido3.Id, NomePrato = pratosJantar[1].Nome, Quantidade = 2, PrecoUnitario = pratosJantar[1].PrecoBase, FoiSugestao = false, Observacao = "" },
+                new ItemPedido { PedidoId = pedido3.Id, NomePrato = pratosAlmoco[1].Nome, Quantidade = 1, PrecoUnitario = pratosAlmoco[1].PrecoBase, FoiSugestao = true,  Observacao = "" },
+            };
+            var itens4 = new[]
+            {
+                new ItemPedido { PedidoId = pedido4.Id, NomePrato = pratosAlmoco[0].Nome, Quantidade = 1, PrecoUnitario = pratosAlmoco[0].PrecoBase, FoiSugestao = false, Observacao = "" },
+                new ItemPedido { PedidoId = pedido4.Id, NomePrato = pratosJantar[3].Nome, Quantidade = 1, PrecoUnitario = pratosJantar[3].PrecoBase, FoiSugestao = true,  Observacao = "Sem pimenta" },
+            };
+
             context.ItensPedido.AddRange(itens1);
             context.ItensPedido.AddRange(itens2);
+            context.ItensPedido.AddRange(itens3);
+            context.ItensPedido.AddRange(itens4);
 
             pedido1.PrecoTotal = itens1.Sum(i => i.PrecoUnitario * i.Quantidade) + pedido1.TaxaEntrega;
             pedido2.PrecoTotal = itens2.Sum(i => i.PrecoUnitario * i.Quantidade) + pedido2.TaxaEntrega;
+            pedido3.PrecoTotal = itens3.Sum(i => i.PrecoUnitario * i.Quantidade) + pedido3.TaxaEntrega;
+            pedido4.PrecoTotal = itens4.Sum(i => i.PrecoUnitario * i.Quantidade) + pedido4.TaxaEntrega;
+
+            await context.SaveChangesAsync();
+
+            // Atendimentos linkados a cada pedido
+            if (cfgProprio != null)
+            {
+                context.AtendimentosDeliveryProprio.Add(new AtendimentoDeliveryProprio(cfgProprio.TaxaFixaProprio ?? 5f)
+                {
+                    PedidoId = pedido1.Id,
+                    Status   = Status.Finalizado
+                });
+                context.AtendimentosDeliveryProprio.Add(new AtendimentoDeliveryProprio(cfgProprio.TaxaFixaProprio ?? 5f)
+                {
+                    PedidoId = pedido4.Id,
+                    Status   = Status.Finalizado
+                });
+            }
+
+            if (cfgIfood != null)
+                context.AtendimentosDeliveryApp.Add(new AtendimentoDeliveryApp(
+                    cfgIfood.NomeApp!,
+                    (cfgIfood.ComissaoPorcentagem ?? 12) / 100f,
+                    cfgIfood.TaxaAdicionalApp ?? 2.5f)
+                {
+                    PedidoId = pedido2.Id,
+                    Status   = Status.Finalizado
+                });
+
+            if (cfgRappi != null)
+                context.AtendimentosDeliveryApp.Add(new AtendimentoDeliveryApp(
+                    cfgRappi.NomeApp!,
+                    (cfgRappi.ComissaoPorcentagem ?? 15) / 100f,
+                    cfgRappi.TaxaAdicionalApp ?? 3f)
+                {
+                    PedidoId = pedido3.Id,
+                    Status   = Status.Finalizado
+                });
         }
 
         await context.SaveChangesAsync();
