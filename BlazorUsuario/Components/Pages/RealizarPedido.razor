@@ -1,0 +1,577 @@
+@page "/realizar-pedido"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@using WebApplication1.Models
+@using WebApplication1.Models.Enums
+@inject ApplicationDbContext Db
+@inject UserManager<Usuario> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+@inject Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage.ProtectedSessionStorage Session
+@using System.Text.Json
+
+<PageTitle>Realizar Pedido</PageTitle>
+
+<div class="text-white py-4" style="background-color:#1a1a1a;">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width:32px;height:32px;background-color:@(etapa >= 1 ? "#e63946" : "#444");color:white;font-size:.85rem;">1</div>
+                <span class="@(etapa == 1 ? "text-white fw-semibold" : "text-secondary") d-none d-sm-inline">Cardapio</span>
+            </div>
+            <div style="width:40px;height:2px;background-color:@(etapa >= 2 ? "#e63946" : "#444");"></div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width:32px;height:32px;background-color:@(etapa >= 2 ? "#e63946" : "#444");color:white;font-size:.85rem;">2</div>
+                <span class="@(etapa == 2 ? "text-white fw-semibold" : "text-secondary") d-none d-sm-inline">Carrinho</span>
+            </div>
+            <div style="width:40px;height:2px;background-color:@(etapa >= 3 ? "#e63946" : "#444");"></div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width:32px;height:32px;background-color:@(etapa >= 3 ? "#e63946" : "#444");color:white;font-size:.85rem;">3</div>
+                <span class="@(etapa == 3 ? "text-white fw-semibold" : "text-secondary") d-none d-sm-inline">Entrega</span>
+            </div>
+            <div style="width:40px;height:2px;background-color:@(etapa >= 4 ? "#16a34a" : "#444");"></div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width:32px;height:32px;background-color:@(etapa >= 4 ? "#16a34a" : "#444");color:white;font-size:.85rem;">&#10003;</div>
+                <span class="@(etapa == 4 ? "text-white fw-semibold" : "text-secondary") d-none d-sm-inline">Pronto</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+
+    @if (!string.IsNullOrEmpty(mensagemErro))
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+            <span class="material-symbols-outlined">error</span>
+            @mensagemErro
+        </div>
+    }
+
+    @* ETAPA 1: CARDÁPIO *@
+    @if (etapa == 1)
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <h4 class="fw-bold mb-3">
+                    <span class="badge me-2" style="background-color:#e63946;font-size:.7rem;">@turnoLabel</span>
+                    Cardápio de Hoje
+                </h4>
+
+                @if (cardapio == null)
+                {
+                    <div class="text-center py-5"><div class="spinner-border text-danger"></div></div>
+                }
+                else if (!cardapio.Itens.Any())
+                {
+                    <div class="text-center py-5">
+                        <span class="material-symbols-outlined" style="font-size:3rem; color:#ccc;">restaurant_menu</span>
+                        <p class="mt-2 text-muted">Nenhum item disponível neste turno.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var item in cardapio.Itens.OrderByDescending(i => i.IsSugestao))
+                        {
+                            var preco = item.IsSugestao ? item.Prato!.PrecoBase * 0.8f : item.Prato!.PrecoBase;
+                            var qtd = ObterQtd(item.Id);
+
+                            <div class="col-12 col-md-6">
+                                <div class="card border-0 shadow-sm h-100"
+                                     style="@(item.IsSugestao ? "border: 2px solid #f59e0b !important;" : "")">
+                                    @if (item.IsSugestao)
+                                    {
+                                        <div class="text-center py-1 small fw-bold"
+                                             style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:.8rem;">
+                                            SUGESTAO DO CHEF - 20% OFF
+                                        </div>
+                                    }
+                                    <div class="card-body">
+                                        <h6 class="fw-bold mb-1">@item.Prato?.Nome</h6>
+                                        <p class="text-muted small mb-2">@item.Prato?.Descricao</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                @if (item.IsSugestao)
+                                                {
+                                                    <span class="text-muted text-decoration-line-through small me-1">
+                                                        R$ @item.Prato!.PrecoBase.ToString("F2")
+                                                    </span>
+                                                    <span class="fw-bold" style="color:#16a34a;">R$ @preco.ToString("F2")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="fw-bold" style="color:#e63946;">R$ @preco.ToString("F2")</span>
+                                                }
+                                            </div>
+
+                                            @if (qtd == 0)
+                                            {
+                                                <button class="btn btn-danger btn-sm"
+                                                        @onclick="() => AdicionarItem(item.Id, item.Prato!.Nome, preco)">
+                                                    + Adicionar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <button class="btn btn-outline-secondary btn-sm rounded-circle"
+                                                            style="width:32px;height:32px;padding:0;"
+                                                            @onclick="() => DecrementarItem(item.Id)">
+                                                        -
+                                                    </button>
+                                                    <span class="fw-bold" style="min-width:20px;text-align:center;">@qtd</span>
+                                                    <button class="btn btn-danger btn-sm rounded-circle"
+                                                            style="width:32px;height:32px;padding:0;"
+                                                            @onclick="() => AdicionarItem(item.Id, item.Prato!.Nome, preco)">
+                                                        +
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card border-0 shadow-sm position-sticky" style="top:1rem;">
+                    <div class="card-header bg-white border-0 fw-bold pt-4 px-4">
+                        Carrinho (@carrinho.Values.Sum(c => c.Quantidade) item(s))
+                    </div>
+                    <div class="card-body px-4">
+                        @if (!carrinho.Any())
+                        {
+                            <p class="text-muted small">Nenhum item adicionado.</p>
+                        }
+                        else
+                        {
+                            @foreach (var c in carrinho.Values)
+                            {
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>@c.Quantidade x @c.Nome</span>
+                                    <span class="fw-semibold">R$ @((c.Quantidade * c.Preco).ToString("F2"))</span>
+                                </div>
+                            }
+                            <hr />
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Subtotal</span>
+                                <span>R$ @Subtotal.ToString("F2")</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-white border-0 px-4 pb-4">
+                        <button class="btn w-100 fw-bold text-white"
+                                style="background-color:#e63946;"
+                                disabled="@(!carrinho.Any())"
+                                @onclick="IrParaCarrinho">
+                            Ver Carrinho
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ETAPA 2: REVISÃO DO CARRINHO *@
+    @if (etapa == 2)
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center mb-4">
+                    <button class="btn btn-link text-secondary p-0 me-3" @onclick="() => etapa = 1">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <h4 class="fw-bold mb-0">Revisar Pedido</h4>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-0">
+                        @foreach (var c in carrinho.Values)
+                        {
+                            var itemLocal = c;
+                            <div class="p-3 border-bottom">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div>
+                                        <div class="fw-semibold">@itemLocal.Nome</div>
+                                        <div class="text-muted small">R$ @itemLocal.Preco.ToString("F2") cada</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button class="btn btn-outline-secondary btn-sm rounded-circle"
+                                                style="width:32px;height:32px;padding:0;"
+                                                @onclick="() => DecrementarItem(itemLocal.ItemCardapioId)">
+                                            -
+                                        </button>
+                                        <span class="fw-bold" style="min-width:24px;text-align:center;">@itemLocal.Quantidade</span>
+                                        <button class="btn btn-danger btn-sm rounded-circle"
+                                                style="width:32px;height:32px;padding:0;"
+                                                @onclick="() => AdicionarItem(itemLocal.ItemCardapioId, itemLocal.Nome, itemLocal.Preco)">
+                                            +
+                                        </button>
+                                        <span class="fw-semibold ms-2" style="min-width:70px;text-align:right;">
+                                            R$ @((itemLocal.Quantidade * itemLocal.Preco).ToString("F2"))
+                                        </span>
+                                    </div>
+                                </div>
+                                <input type="text" class="form-control form-control-sm"
+                                       placeholder="Observacao (opcional)"
+                                       value="@itemLocal.Observacao"
+                                       @onchange="e => itemLocal.Observacao = e.Value?.ToString() ?? string.Empty" />
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between fw-bold fs-5 px-4 py-3">
+                        <span>Total</span>
+                        <span style="color:#e63946;">R$ @Subtotal.ToString("F2")</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-lg w-100 fw-bold text-white" style="background-color:#e63946;"
+                        @onclick="IrParaEntrega">
+                    Selecionar Endereco de Entrega
+                </button>
+            </div>
+        </div>
+    }
+
+    @* ETAPA 3: ENDEREÇO E CHECKOUT *@
+    @if (etapa == 3)
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center mb-4">
+                    <button class="btn btn-link text-secondary p-0 me-3" @onclick="() => etapa = 2">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <h4 class="fw-bold mb-0">Endereco de Entrega</h4>
+                </div>
+
+                @if (enderecos == null)
+                {
+                    <div class="text-center py-4"><div class="spinner-border text-danger"></div></div>
+                }
+                else if (!enderecos.Any())
+                {
+                    <div class="alert alert-warning d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">location_off</span>
+                        <span>
+                            Voce nao tem enderecos cadastrados.
+                            <button class="btn btn-link p-0 alert-link fw-semibold"
+                                    @onclick="IrParaEnderecos">
+                                Adicionar endereco
+                            </button>
+                        </span>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3 mb-4">
+                        @foreach (var e in enderecos)
+                        {
+                            var endLocal = e;
+                            var selecionado = enderecoId == endLocal.Id;
+                            <div class="col-12">
+                                <div class="card border-2 shadow-sm"
+                                     style="@(selecionado ? "border-color:#e63946 !important;" : "border-color:#dee2e6;") cursor:pointer;"
+                                     @onclick="() => enderecoId = endLocal.Id">
+                                    <div class="card-body d-flex align-items-center gap-3">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                             style="width:40px;height:40px;background-color:@(selecionado ? "#e63946" : "#f3f4f6");flex-shrink:0;">
+                                            <span class="material-symbols-outlined"
+                                                  style="font-size:1.2rem;color:@(selecionado ? "white" : "#666");">
+                                                @(endLocal.Principal ? "home" : "location_on")
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold">
+                                                @endLocal.Local
+                                                @if (endLocal.Principal)
+                                                {
+                                                    <span class="badge ms-2" style="background-color:#e63946;font-size:.7rem;">Principal</span>
+                                                }
+                                            </div>
+                                            <div class="text-muted small">@endLocal.Bairro - CEP @endLocal.Cep</div>
+                                            @if (!string.IsNullOrEmpty(endLocal.Complemento))
+                                            {
+                                                <div class="text-muted small">@endLocal.Complemento</div>
+                                            }
+                                        </div>
+                                        @if (selecionado)
+                                        {
+                                            <span class="material-symbols-outlined" style="color:#e63946;">check_circle</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-3">Resumo do Pedido</h6>
+                            @foreach (var c in carrinho.Values)
+                            {
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>@c.Quantidade x @c.Nome</span>
+                                    <span>R$ @((c.Quantidade * c.Preco).ToString("F2"))</span>
+                                </div>
+                            }
+                            <hr />
+                            @if (taxaEntrega > 0)
+                            {
+                                <div class="d-flex justify-content-between small mb-1 text-muted">
+                                    <span>Taxa de entrega</span>
+                                    <span>R$ @taxaEntrega.ToString("F2")</span>
+                                </div>
+                            }
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total</span>
+                                <span style="color:#e63946;">R$ @((Subtotal + taxaEntrega).ToString("F2"))</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-lg w-100 fw-bold text-white"
+                            style="background-color:#e63946;"
+                            disabled="@(enderecoId == Guid.Empty || salvando)"
+                            @onclick="FinalizarPedido">
+                        @if (salvando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Finalizar Pedido
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    @* ETAPA 4: CONFIRMAÇÃO *@
+    @if (etapa == 4)
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined" style="font-size:5rem;color:#16a34a;">check_circle</span>
+            <h3 class="fw-bold mt-3">Pedido realizado com sucesso!</h3>
+            <p class="text-muted">Seu pedido foi recebido e esta sendo processado.</p>
+            <div class="d-flex gap-3 justify-content-center mt-4">
+                <a href="/meus-pedidos" class="btn btn-danger fw-semibold">Ver Meus Pedidos</a>
+                <a href="/" class="btn btn-outline-secondary fw-semibold">Voltar ao Cardapio</a>
+            </div>
+        </div>
+    }
+</div>
+
+@* Sub-componentes inline para o stepper *@
+@code {
+    // --- Estado ---
+    private int etapa = 1;
+    private Guid usuarioId;
+    private Cardapio? cardapio;
+    private string turnoLabel = "";
+    private List<Endereco>? enderecos;
+    private Guid enderecoId = Guid.Empty;
+    private float taxaEntrega = 0;
+    private string mensagemErro = "";
+    private bool salvando = false;
+
+    private Dictionary<Guid, CarrinhoItem> carrinho = new();
+    private float Subtotal => carrinho.Values.Sum(c => c.Quantidade * c.Preco);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+        {
+            Nav.NavigateTo("/login?returnUrl=/realizar-pedido", forceLoad: true);
+            return;
+        }
+
+        var usuario = await UserManager.GetUserAsync(authState.User);
+        if (usuario != null)
+            usuarioId = usuario.Id;
+
+        var turno = ObterTurno();
+        turnoLabel = turno == Turno.Almoco ? "Almoco" : "Jantar";
+
+        cardapio = await Db.Cardapios
+            .Include(c => c.Itens).ThenInclude(i => i.Prato)
+            .FirstOrDefaultAsync(c => c.Data.Date == DateTime.Today && c.Turno == turno);
+
+        var config = await Db.ConfiguracoesDelivery
+            .FirstOrDefaultAsync(c => c.Ativo && c.Tipo == TipoDelivery.Proprio);
+        if (config != null) taxaEntrega = config.TaxaFixaProprio ?? 0;
+
+        await CarregarEnderecos();
+
+        // Restaurar carrinho e etapa salvos na sessão (retorno de meus-enderecos)
+        await RestaurarCarrinhoAsync();
+        await RestaurarEtapaAsync();
+    }
+
+    private async Task CarregarEnderecos()
+    {
+        if (usuarioId == Guid.Empty) return;
+        enderecos = await Db.Enderecos
+            .Where(e => e.UsuarioId == usuarioId)
+            .OrderByDescending(e => e.Principal)
+            .ToListAsync();
+        var principal = enderecos.FirstOrDefault(e => e.Principal);
+        if (principal != null) enderecoId = principal.Id;
+    }
+
+    private int ObterQtd(Guid itemId) =>
+        carrinho.TryGetValue(itemId, out var c) ? c.Quantidade : 0;
+
+    private void AdicionarItem(Guid itemId, string nome, float preco)
+    {
+        if (carrinho.TryGetValue(itemId, out var existing))
+            existing.Quantidade++;
+        else
+            carrinho[itemId] = new CarrinhoItem { ItemCardapioId = itemId, Nome = nome, Preco = preco, Quantidade = 1 };
+    }
+
+    private void DecrementarItem(Guid itemId)
+    {
+        if (!carrinho.TryGetValue(itemId, out var c)) return;
+        c.Quantidade--;
+        if (c.Quantidade <= 0) carrinho.Remove(itemId);
+    }
+
+    private void IrParaCarrinho() => etapa = 2;
+
+    private async Task IrParaEnderecos()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(carrinho.Values.ToList());
+        await Session.SetAsync("carrinho", json);
+        await Session.SetAsync("pedido_etapa", "3");
+        Nav.NavigateTo("/meus-enderecos?returnUrl=/realizar-pedido", forceLoad: false);
+    }
+
+    private async Task IrParaEntrega()
+    {
+        // Salva carrinho na sessão antes de ir para etapa de entrega
+        var json = System.Text.Json.JsonSerializer.Serialize(carrinho.Values.ToList());
+        await Session.SetAsync("carrinho", json);
+        await CarregarEnderecos();
+        etapa = 3;
+    }
+
+    private async Task RestaurarEtapaAsync()
+    {
+        try
+        {
+            var result = await Session.GetAsync<string>("pedido_etapa");
+            if (result.Success && result.Value == "3" && carrinho.Any())
+            {
+                await CarregarEnderecos();
+                await Session.DeleteAsync("pedido_etapa");
+                etapa = 3;
+            }
+        }
+        catch { /* ok */ }
+    }
+
+    private async Task RestaurarCarrinhoAsync()
+    {
+        try
+        {
+            var result = await Session.GetAsync<string>("carrinho");
+            if (result.Success && !string.IsNullOrEmpty(result.Value))
+            {
+                var items = System.Text.Json.JsonSerializer.Deserialize<List<CarrinhoItem>>(result.Value);
+                if (items != null)
+                {
+                    carrinho = items.ToDictionary(i => i.ItemCardapioId);
+                }
+            }
+        }
+        catch { /* sessão vazia, ok */ }
+    }
+
+    private async Task FinalizarPedido()
+    {
+        mensagemErro = "";
+        if (enderecoId == Guid.Empty) { mensagemErro = "Selecione um endereco."; return; }
+        if (!carrinho.Any()) { mensagemErro = "Carrinho vazio."; return; }
+
+        salvando = true;
+        try
+        {
+            var itemIds = carrinho.Keys.ToList();
+            var itensCardapio = await Db.ItensCardapio
+                .Include(i => i.Prato)
+                .Where(i => itemIds.Contains(i.Id))
+                .ToListAsync();
+
+            var itensPedido = carrinho.Values.Select(c =>
+            {
+                var ic = itensCardapio.FirstOrDefault(x => x.Id == c.ItemCardapioId);
+                return new ItemPedido
+                {
+                    NomePrato = c.Nome,
+                    PrecoUnitario = c.Preco,
+                    Quantidade = c.Quantidade,
+                    FoiSugestao = ic?.IsSugestao ?? false,
+                    Observacao = c.Observacao
+                };
+            }).ToList();
+
+            var pedido = new Pedido
+            {
+                UsuarioId = usuarioId,
+                TaxaEntrega = taxaEntrega,
+                PrecoTotal = Subtotal + taxaEntrega,
+                Itens = itensPedido
+            };
+
+            Db.Pedidos.Add(pedido);
+            await Db.SaveChangesAsync();
+
+            var atendimento = new AtendimentoDeliveryProprio(taxaEntrega, enderecoId)
+            {
+                PedidoId = pedido.Id
+            };
+            atendimento.ProcessarAtendimento();
+            Db.AtendimentosDeliveryProprio.Add(atendimento);
+            await Db.SaveChangesAsync();
+
+            carrinho.Clear();
+            await Session.DeleteAsync("carrinho");
+            etapa = 4;
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro ao finalizar pedido. Tente novamente.";
+            Console.Error.WriteLine(ex);
+        }
+        finally { salvando = false; }
+    }
+
+    private static Turno ObterTurno()
+    {
+        var h = DateTime.Now.Hour;
+        if (h >= 11 && h < 13) return Turno.Almoco;
+        return Turno.Jantar;
+    }
+
+    private class CarrinhoItem
+    {
+        public Guid ItemCardapioId { get; set; }
+        public string Nome { get; set; } = "";
+        public float Preco { get; set; }
+        public int Quantidade { get; set; }
+        public string Observacao { get; set; } = "";
+    }
+}
+
+

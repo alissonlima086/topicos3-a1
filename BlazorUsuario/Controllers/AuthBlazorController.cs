@@ -24,7 +24,8 @@ namespace BlazorUsuario.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login(
             [FromForm] string email,
-            [FromForm] string senha)
+            [FromForm] string senha,
+            [FromForm] string? returnUrl = null)
         {
             var user = await _signInManager.UserManager.FindByEmailAsync(email);
 
@@ -41,11 +42,17 @@ namespace BlazorUsuario.Controllers
                     };
 
                     await _signInManager.SignInWithClaimsAsync(user, isPersistent: true, claims);
+
+                    // Redireciona para returnUrl se for local e válida
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        return Redirect(returnUrl);
+
                     return Redirect("/");
                 }
             }
 
-            return Redirect("/login?erro=1");
+            var erro = $"/login?erro=1{(!string.IsNullOrEmpty(returnUrl) ? $"&returnUrl={Uri.EscapeDataString(returnUrl)}" : "")}";
+            return Redirect(erro);
         }
 
         [HttpPost("blazor-cadastro")]

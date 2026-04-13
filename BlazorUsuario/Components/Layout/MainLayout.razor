@@ -15,10 +15,25 @@
                     <li class="nav-item">
                         <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">Cardápio</NavLink>
                     </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/realizar-pedido">
+                            <span class="material-symbols-outlined align-middle me-1" style="font-size:1rem;">shopping_cart</span>
+                            Fazer Pedido
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/realizar-reserva">
+                            <span class="material-symbols-outlined align-middle me-1" style="font-size:1rem;">event_seat</span>
+                            Reservar Mesa
+                        </NavLink>
+                    </li>
                     <AuthorizeView>
                         <Authorized>
                             <li class="nav-item">
                                 <NavLink class="nav-link" href="/meus-pedidos">Meus Pedidos</NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="/minhas-reservas">Minhas Reservas</NavLink>
                             </li>
                         </Authorized>
                     </AuthorizeView>
@@ -74,5 +89,5 @@
 <div id="blazor-error-ui" class="alert alert-danger m-3" style="display:none;">
     Ocorreu um erro.
     <a href="" class="alert-link">Recarregar</a>
-    <a class="float-end" onclick="document.getElementById('blazor-error-ui').style.display='none'">✕</a>
+    <a class="float-end" onclick="document.getElementById('blazor-error-ui').style.display='none'">&#x2715;</a>
 </div>
