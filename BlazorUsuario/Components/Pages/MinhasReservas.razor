@@ -1,0 +1,209 @@
+@page "/minhas-reservas"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@using WebApplication1.Models
+@using WebApplication1.Models.Enums
+@inject ApplicationDbContext Db
+@inject UserManager<Usuario> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<PageTitle>Minhas Reservas</PageTitle>
+
+<div class="text-white text-center py-4" style="background-color:#1a1a1a;">
+    <div class="container">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined align-middle me-2" style="color:#e63946;">event_seat</span>
+            Minhas Reservas
+        </h2>
+    </div>
+</div>
+
+<div class="container py-5" style="max-width:720px;">
+
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert alert-@(erro ? "danger" : "success") d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined">@(erro ? "error" : "check_circle")</span>
+            @mensagem
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0">Histórico de Reservas</h5>
+        <a href="/realizar-reserva" class="btn btn-danger fw-semibold">
+            <span class="material-symbols-outlined align-middle me-1" style="font-size:1rem;">add</span>
+            Nova Reserva
+        </a>
+    </div>
+
+    @if (reservas == null)
+    {
+        <div class="text-center py-5"><div class="spinner-border text-danger"></div></div>
+    }
+    else if (!reservas.Any())
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined" style="font-size:4rem;color:#ccc;">event_busy</span>
+            <h5 class="mt-3 text-muted">Nenhuma reserva encontrada.</h5>
+            <a href="/realizar-reserva" class="btn btn-danger mt-3">Fazer uma Reserva</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var r in reservas)
+            {
+                var podeCancel = r.Status == Status.Pendente || r.Status == Status.Confirmado;
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm border-start border-4 @BadgeBorder(r.Status)">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-bold fs-6">
+                                        <span class="material-symbols-outlined align-middle me-1" style="font-size:1rem;">calendar_today</span>
+                                        @r.Data.ToString("dd/MM/yyyy")
+                                        &nbsp;&mdash;&nbsp;
+                                        @r.HorarioInicio.ToString("HH:mm") às @r.HorarioFim.ToString("HH:mm")
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        <span class="material-symbols-outlined align-middle" style="font-size:.9rem;">table_restaurant</span>
+                                        Mesa @(r.Mesa?.Numero.ToString() ?? "-")
+                                        &nbsp;·&nbsp;
+                                        <span class="material-symbols-outlined align-middle" style="font-size:.9rem;">group</span>
+                                        @r.NumeroPessoas pessoa(s)
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge @BadgeClass(r.Status) fs-6 px-3 py-2">
+                                        @StatusLabel(r.Status)
+                                    </span>
+                                    @if (podeCancel)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                disabled="@cancelando"
+                                                @onclick="() => ConfirmarCancelamento(r.Id)">
+                                            Cancelar
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (confirmandoCancelId == r.Id)
+                            {
+                                <div class="alert alert-warning mt-3 py-2 d-flex align-items-center gap-3">
+                                    <span>Tem certeza que deseja cancelar esta reserva?</span>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => Cancelar(r.Id)" disabled="@cancelando">
+                                        @if (cancelando) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                        Sim, cancelar
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => confirmandoCancelId = null">
+                                        Voltar
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Reserva>? reservas;
+    private Guid usuarioId;
+    private string mensagem = "";
+    private bool erro = false, cancelando = false;
+    private Guid? confirmandoCancelId = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+        {
+            Nav.NavigateTo("/login?returnUrl=/minhas-reservas", forceLoad: true);
+            return;
+        }
+
+        var usuario = await UserManager.GetUserAsync(authState.User);
+        if (usuario != null)
+        {
+            usuarioId = usuario.Id;
+            await Carregar();
+        }
+    }
+
+    private async Task Carregar()
+    {
+        reservas = await Db.Reservas
+            .Include(r => r.Mesa)
+            .Where(r => r.UsuarioId == usuarioId)
+            .OrderByDescending(r => r.Data)
+            .ThenByDescending(r => r.HorarioInicio)
+            .ToListAsync();
+    }
+
+    private void ConfirmarCancelamento(Guid id)
+    {
+        confirmandoCancelId = confirmandoCancelId == id ? null : id;
+        mensagem = "";
+    }
+
+    private async Task Cancelar(Guid id)
+    {
+        cancelando = true;
+        try
+        {
+            var reserva = await Db.Reservas.FindAsync(id);
+            if (reserva == null || reserva.UsuarioId != usuarioId)
+            {
+                mensagem = "Reserva nao encontrada."; erro = true; return;
+            }
+            if (reserva.Status != Status.Pendente && reserva.Status != Status.Confirmado)
+            {
+                mensagem = "Esta reserva nao pode ser cancelada."; erro = true; return;
+            }
+            reserva.AtualizarStatus(Status.Cancelado);
+            await Db.SaveChangesAsync();
+            mensagem = "Reserva cancelada com sucesso."; erro = false;
+            confirmandoCancelId = null;
+            await Carregar();
+        }
+        catch
+        {
+            mensagem = "Erro ao cancelar. Tente novamente."; erro = true;
+        }
+        finally { cancelando = false; }
+    }
+
+    private string BadgeClass(Status s) => s switch
+    {
+        Status.Pendente => "bg-secondary",
+        Status.Confirmado => "bg-success",
+        Status.Cancelado => "bg-danger",
+        Status.Finalizado => "bg-dark",
+        _ => "bg-secondary"
+    };
+
+    private string BadgeBorder(Status s) => s switch
+    {
+        Status.Pendente => "border-secondary",
+        Status.Confirmado => "border-success",
+        Status.Cancelado => "border-danger",
+        Status.Finalizado => "border-dark",
+        _ => "border-secondary"
+    };
+
+    private string StatusLabel(Status s) => s switch
+    {
+        Status.Pendente => "Pendente",
+        Status.Confirmado => "Confirmada",
+        Status.Cancelado => "Cancelada",
+        Status.Finalizado => "Finalizada",
+        _ => s.ToString()
+    };
+}

@@ -9,11 +9,19 @@
 @inject ApplicationDbContext Db
 @inject UserManager<Usuario> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
 
 <PageTitle>Meus Endereços</PageTitle>
 
 <div class="container py-5" style="max-width:640px;">
     <h2 class="fw-bold mb-4">Meus Endereços</h2>
+    @if (!string.IsNullOrEmpty(returnUrl))
+    {
+        <div class="alert alert-info py-2 d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">info</span>
+            Adicione um endereço para continuar com seu pedido.
+        </div>
+    }
 
     @if (!string.IsNullOrEmpty(mensagem))
     {
@@ -100,9 +108,14 @@
     private Guid usuarioId;
     private string mensagem = "", novoLocal = "", novoBairro = "", novoCep = "", novoComplemento = "";
     private bool erro = false, salvando = false, novoPrincipal = false;
+    private string? returnUrl = null;
 
     protected override async Task OnInitializedAsync()
     {
+        var uri = new Uri(Nav.Uri);
+        var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        returnUrl = qs["returnUrl"];
+
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var usuario = await UserManager.GetUserAsync(authState.User);
         if (usuario != null) { usuarioId = usuario.Id; await Carregar(); }
@@ -128,6 +141,9 @@
         novoLocal = novoBairro = novoCep = novoComplemento = ""; novoPrincipal = false;
         mensagem = "Endereço adicionado!"; erro = false; salvando = false;
         await Carregar();
+
+        if (!string.IsNullOrEmpty(returnUrl))
+            Nav.NavigateTo(returnUrl, forceLoad: false);
     }
 
     private async Task Excluir(Guid id)

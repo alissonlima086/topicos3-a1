@@ -1,0 +1,385 @@
+@page "/realizar-reserva"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using WebApplication1.Data
+@using WebApplication1.Models
+@using WebApplication1.Models.Enums
+@inject ApplicationDbContext Db
+@inject UserManager<Usuario> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<PageTitle>Realizar Reserva</PageTitle>
+
+<div class="text-white text-center py-4" style="background-color:#1a1a1a;">
+    <div class="container">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined align-middle me-2" style="color:#e63946;">event_seat</span>
+            Realizar Reserva
+        </h2>
+        <p class="text-secondary mb-0 mt-1">Reservas disponíveis apenas para o jantar (a partir das 18h)</p>
+    </div>
+</div>
+
+<div class="container py-5" style="max-width:620px;">
+
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert alert-@(erro ? "danger" : "success") d-flex align-items-center gap-2">
+            <span class="material-symbols-outlined">@(erro ? "error" : "check_circle")</span>
+            @mensagem
+        </div>
+    }
+
+    @if (sucesso)
+    {
+        <div class="text-center py-4">
+            <span class="material-symbols-outlined" style="font-size:4rem; color:#16a34a;">event_available</span>
+            <h4 class="mt-3 fw-bold">Reserva solicitada!</h4>
+            <p class="text-muted">Sua reserva esta pendente de confirmacao pelo restaurante.</p>
+            <a href="/minhas-reservas" class="btn btn-danger mt-2">Ver Minhas Reservas</a>
+            <button class="btn btn-outline-secondary mt-2 ms-2" @onclick="NovaReserva">Nova Reserva</button>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Data</label>
+                    <input type="date" class="form-control"
+                           value="@data.ToString("yyyy-MM-dd")"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           @onchange="OnFiltroChanged_Data" />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Horario de inicio</label>
+                        <input type="time" class="form-control"
+                               value="@horaInicio"
+                               @onchange="OnFiltroChanged_HoraInicio" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Horario de fim</label>
+                        <input type="time" class="form-control"
+                               value="@horaFim"
+                               @onchange="OnFiltroChanged_HoraFim" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Numero de pessoas</label>
+                    <input type="number" class="form-control" @bind="numeroPessoas" min="1" max="20" />
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label fw-semibold mb-0">Mesas</label>
+                        @if (verificandoMesas)
+                        {
+                            <span class="d-flex align-items-center gap-1 text-muted small">
+                                <div class="spinner-border spinner-border-sm" style="width:14px;height:14px;border-width:2px;"></div>
+                                Verificando disponibilidade...
+                            </span>
+                        }
+                        else if (filtroValido)
+                        {
+                            <span class="text-muted small">
+                                @mesasDisponiveis.Count disponivel(is)
+                            </span>
+                        }
+                    </div>
+
+                    @if (!filtroValido)
+                    {
+                        <div class="alert alert-info py-2 small d-flex align-items-center gap-2 mb-0">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">info</span>
+                            Preencha data e horarios validos (jantar a partir das 18h) para ver a disponibilidade.
+                        </div>
+                    }
+                    else if (todasMesas == null)
+                    {
+                        <div class="text-center py-3"><div class="spinner-border text-danger"></div></div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-3 mb-3 small text-muted">
+                            <span class="d-flex align-items-center gap-1">
+                                <span style="width:12px;height:12px;border-radius:2px;background:#e63946;display:inline-block;"></span>
+                                Selecionada
+                            </span>
+                            <span class="d-flex align-items-center gap-1">
+                                <span style="width:12px;height:12px;border-radius:2px;background:#16a34a;display:inline-block;"></span>
+                                Disponivel
+                            </span>
+                            <span class="d-flex align-items-center gap-1">
+                                <span style="width:12px;height:12px;border-radius:2px;background:#9ca3af;display:inline-block;"></span>
+                                Ocupada
+                            </span>
+                        </div>
+
+                        <div class="row g-2">
+                            @foreach (var m in todasMesas)
+                            {
+                                var ocupada = mesasOcupadas.Contains(m.Id);
+                                var selecionada = mesaId == m.Id;
+
+                                string bg, cor, borda;
+                                if (selecionada)  { bg = "#e63946"; cor = "white";   borda = "#e63946"; }
+                                else if (ocupada) { bg = "#f3f4f6"; cor = "#9ca3af"; borda = "#e5e7eb"; }
+                                else              { bg = "#f0fdf4"; cor = "#15803d"; borda = "#86efac"; }
+
+                                <div class="col-4">
+                                    <button type="button"
+                                            class="btn w-100 position-relative"
+                                            style="background-color:@bg;color:@cor;border:2px solid @borda;transition:all .15s;"
+                                            disabled="@ocupada"
+                                            @onclick="() => SelecionarMesa(m.Id)">
+                                        <div class="fw-bold">Mesa @m.Numero</div>
+                                        <div class="small">@m.Capacidade pess.</div>
+                                        @if (ocupada)
+                                        {
+                                            <div style="font-size:.7rem;">Ocupada</div>
+                                        }
+                                        @if (selecionada)
+                                        {
+                                            <span class="position-absolute top-0 end-0 me-1 mt-1 material-symbols-outlined"
+                                                  style="font-size:.9rem;">check_circle</span>
+                                        }
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(erroMesa))
+                {
+                    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined">warning</span>
+                        @erroMesa
+                    </div>
+                }
+
+                <button class="btn btn-lg w-100 fw-bold text-white"
+                        style="background-color:#e63946;"
+                        @onclick="Reservar"
+                        disabled="@(salvando || mesaId == Guid.Empty || !filtroValido)">
+                    @if (salvando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    Confirmar Reserva
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Guid usuarioId;
+    private DateTime data = DateTime.Today.AddDays(1);
+    private string horaInicio = "19:00";
+    private string horaFim = "21:00";
+    private int numeroPessoas = 2;
+    private Guid mesaId = Guid.Empty;
+
+    private List<Mesa>? todasMesas;
+    private List<Guid> mesasOcupadas = new();
+    private List<Mesa> mesasDisponiveis =>
+        todasMesas?.Where(m => !mesasOcupadas.Contains(m.Id)).ToList() ?? new();
+
+    private string mensagem = "";
+    private string erroMesa = "";
+    private bool erro = false, salvando = false, sucesso = false;
+    private bool verificandoMesas = false;
+
+    private System.Threading.CancellationTokenSource? _debounce;
+
+    private bool filtroValido =>
+        TimeSpan.TryParse(horaInicio, out var i) &&
+        TimeSpan.TryParse(horaFim, out var f) &&
+        (data.Date + i).Hour >= 18 &&
+        f > i;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+        {
+            Nav.NavigateTo("/login?returnUrl=/realizar-reserva", forceLoad: true);
+            return;
+        }
+
+        var usuario = await UserManager.GetUserAsync(authState.User);
+        if (usuario != null)
+            usuarioId = usuario.Id;
+
+        todasMesas = await Db.Mesas.OrderBy(m => m.Numero).ToListAsync();
+        await AtualizarDisponibilidade();
+    }
+
+    private async Task OnFiltroChanged_Data(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var d))
+            data = d;
+        mesaId = Guid.Empty;
+        erroMesa = "";
+        await DispararVerificacao();
+    }
+
+    private async Task OnFiltroChanged_HoraInicio(ChangeEventArgs e)
+    {
+        horaInicio = e.Value?.ToString() ?? horaInicio;
+        mesaId = Guid.Empty;
+        erroMesa = "";
+        await DispararVerificacao();
+    }
+
+    private async Task OnFiltroChanged_HoraFim(ChangeEventArgs e)
+    {
+        horaFim = e.Value?.ToString() ?? horaFim;
+        mesaId = Guid.Empty;
+        erroMesa = "";
+        await DispararVerificacao();
+    }
+
+    private async Task DispararVerificacao()
+    {
+        _debounce?.Cancel();
+        _debounce = new System.Threading.CancellationTokenSource();
+        var token = _debounce.Token;
+
+        verificandoMesas = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(350, token);
+            if (!token.IsCancellationRequested)
+                await AtualizarDisponibilidade();
+        }
+        catch (TaskCanceledException) { }
+        finally
+        {
+            if (!token.IsCancellationRequested)
+            {
+                verificandoMesas = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task AtualizarDisponibilidade()
+    {
+        if (!filtroValido || todasMesas == null) return;
+
+        TimeSpan.TryParse(horaInicio, out var tsI);
+        TimeSpan.TryParse(horaFim, out var tsF);
+        var inicio = data.Date + tsI;
+        var fim = data.Date + tsF;
+
+        mesasOcupadas = await Db.Reservas
+            .Where(r =>
+                r.Status != Status.Cancelado &&
+                r.HorarioInicio < fim &&
+                r.HorarioFim > inicio)
+            .Select(r => r.MesaId)
+            .Distinct()
+            .ToListAsync();
+
+        if (mesaId != Guid.Empty && mesasOcupadas.Contains(mesaId))
+        {
+            mesaId = Guid.Empty;
+            erroMesa = "A mesa selecionada ficou indisponivel para este horario. Escolha outra.";
+        }
+
+        verificandoMesas = false;
+        StateHasChanged();
+    }
+
+    private void SelecionarMesa(Guid id)
+    {
+        mesaId = id;
+        erroMesa = "";
+    }
+
+    private async Task Reservar()
+    {
+        mensagem = "";
+        erroMesa = "";
+
+        if (!TimeSpan.TryParse(horaInicio, out var tsI) || !TimeSpan.TryParse(horaFim, out var tsF))
+        { mensagem = "Horarios invalidos."; erro = true; return; }
+
+        var inicio = data.Date + tsI;
+        var fim = data.Date + tsF;
+
+        if (inicio.Hour < 18) { mensagem = "Reservas so a partir das 18h."; erro = true; return; }
+        if (fim <= inicio)    { mensagem = "Horario de fim deve ser apos o inicio."; erro = true; return; }
+        if (mesaId == Guid.Empty) { mensagem = "Selecione uma mesa."; erro = true; return; }
+        if (numeroPessoas < 1)    { mensagem = "Informe o numero de pessoas."; erro = true; return; }
+
+        // Verificacao final (race condition)
+        var temConflito = await Db.Reservas.AnyAsync(r =>
+            r.MesaId == mesaId &&
+            r.Status != Status.Cancelado &&
+            r.HorarioInicio < fim &&
+            r.HorarioFim > inicio);
+
+        if (temConflito)
+        {
+            erroMesa = "Esta mesa foi reservada por outra pessoa agora mesmo. Por favor, escolha outra.";
+            await AtualizarDisponibilidade();
+            return;
+        }
+
+        var mesa = todasMesas?.FirstOrDefault(m => m.Id == mesaId);
+        if (mesa != null && numeroPessoas > mesa.Capacidade)
+        {
+            mensagem = $"A mesa {mesa.Numero} comporta no maximo {mesa.Capacidade} pessoas.";
+            erro = true;
+            return;
+        }
+
+        salvando = true;
+        try
+        {
+            var reserva = new Reserva
+            {
+                Data = data.Date,
+                HorarioInicio = inicio,
+                HorarioFim = fim,
+                NumeroPessoas = numeroPessoas,
+                MesaId = mesaId,
+                UsuarioId = usuarioId
+            };
+            Db.Reservas.Add(reserva);
+            await Db.SaveChangesAsync();
+            sucesso = true;
+        }
+        catch
+        {
+            mensagem = "Erro ao salvar reserva. Tente novamente.";
+            erro = true;
+        }
+        finally { salvando = false; }
+    }
+
+    private void NovaReserva()
+    {
+        sucesso = false;
+        mensagem = "";
+        erroMesa = "";
+        mesaId = Guid.Empty;
+        data = DateTime.Today.AddDays(1);
+        horaInicio = "19:00";
+        horaFim = "21:00";
+        numeroPessoas = 2;
+        mesasOcupadas.Clear();
+    }
+}
