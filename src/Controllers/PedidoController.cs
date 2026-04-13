@@ -123,6 +123,35 @@ namespace WebApplication1.Controllers
                 await CarregarViewBagCreate();
                 return View();
             }
+
+            if (configuracaoDeliveryId.HasValue && resultado != null)
+            {
+                var config = await _deliveryService.BuscarPorIdAsync(configuracaoDeliveryId.Value);
+                if (config != null)
+                {
+                    if (config.Tipo == TipoDelivery.App)
+                    {
+                        var at = new AtendimentoDeliveryApp(
+                            config.NomeApp ?? "App",
+                            (config.ComissaoPorcentagem ?? 0) / 100f,
+                            config.TaxaAdicionalApp ?? 0)
+                        {
+                            PedidoId = resultado.Id
+                        };
+                        _context.AtendimentosDeliveryApp.Add(at);
+                    }
+                    else
+                    {
+                        var at = new AtendimentoDeliveryProprio(config.TaxaFixaProprio ?? 0)
+                        {
+                            PedidoId = resultado.Id
+                        };
+                        _context.AtendimentosDeliveryProprio.Add(at);
+                    }
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             return RedirectToAction(nameof(Details), new { id = resultado!.Id });
         }
 

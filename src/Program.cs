@@ -40,6 +40,7 @@ builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IMesaService, MesaService>();
 builder.Services.AddScoped<IAtendimentoService, AtendimentoService>();
 builder.Services.AddScoped<IConfiguracaoDeliveryService, ConfiguracaoDeliveryService>();
+builder.Services.AddScoped<IRelatorioService, RelatorioService>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
