@@ -25,7 +25,7 @@ Este projeto roda localmente usando Docker e Docker Compose, com SQL Server (Exp
 docker compose up --build
 ```
 
-> Observação: devido a diferença de formatos entre o windows e o linux, pode haver um erro para o docker executar o shell script do Entrypoint, caso ocorra, execute o seguinte comando dentro da raiz do projeto:
+> Observação: devido a diferença de formatos entre o windows e o linux, pode haver um erro para o docker executar o shell script do Entrypoint, caso ocorra, execute o seguinte comando dentro da raiz do projeto e rode novamente:
 ```bash
 (Get-Content entrypoint.sh -Raw) -replace "`r`n", "`n" | Set-Content entrypoint.sh -NoNewline
 ```
@@ -64,12 +64,16 @@ docker compose down -v
 Para dar inicio ao desenvolvimento, foi desenvolvido um diagrama de classes UML para nos auxiliar na compreensão do problema.
 
 <p align="center">
-  <img src="./docs/uml-tp3.png" alt="UML do projeto" width="600"/>
+  <img src="./docs/uml-tp3.png" alt="UML do projeto" width="800"/>
 </p>
 
 Eventualmente o código foi alterado conforme os requisitos do sistema iam ficando mais claros, mas a base principal continuou a do modelo inicial.
 
 ## Stack
+
+O projeto foi desenvolvido com .NET 8 para a criação de um projeto MVC, conectando-se ao SQL Server.
+Utilizamos as Razor Views para o frontend do painel de administração.
+Utilizamos o Blazor Server para o frontend da interface principal do usuário.
 
 | Ferramenta | Função |
 |---|---|
