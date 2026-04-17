@@ -7,6 +7,8 @@ Trabalho desenvolvido por:
 - [Alisson de Oliveira Lima](https://github.com/alissonlima086)
 - [Ana Paula Gomes Miranda](https://github.com/anapaula020)
 
+---
+
 # Docker Setup
 
 Este projeto roda localmente usando Docker e Docker Compose, com SQL Server (Express ou Azure SQL Edge).
@@ -38,11 +40,19 @@ docker compose up --build
 
 > Observação: na primeira vez que rodar, isso pode demorar um pouco mais, o container precisa baixar a imagem, restaurar pacotes e criar o banco de dados.
 
-4. Acesse a aplicação no navegador:
+Acesse a aplicação no painel de administrador:
 
 ```
 localhost:5000
 ```
+
+Acesse a aplicação na interface de usuario:
+
+```
+localhost:5001
+```
+
+---
 
 ## Parar a aplicação
 
