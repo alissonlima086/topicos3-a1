@@ -4,6 +4,7 @@
 @using WebApplication1.Data
 @using WebApplication1.Models
 @using WebApplication1.Models.Enums
+@using System.Runtime.InteropServices;
 @inject ApplicationDbContext Db
 
 <PageTitle>Cardápio - Restaurante</PageTitle>
@@ -11,16 +12,43 @@
 <div class="text-white text-center py-5" style="background-color:#1a1a1a;">
     <div class="container">
         <h1 class="display-4 fw-bold">Bem-vindo ao <span style="color:#e63946;">Restaurante</span></h1>
-        <p class="lead text-secondary">Confira o cardápio de hoje</p>
-        <span class="badge fs-6 px-3 py-2 d-inline-flex align-items-center gap-1" style="background-color:#e63946;">
-            <span class="material-symbols-outlined" style="font-size:1.1rem;">@turnoIcone</span>
-            @turnoAtual
-        </span>
+        @if (dentroDoHorario)
+        {
+            <p class="lead text-secondary">Confira o cardápio de hoje</p>
+            <span class="badge fs-6 px-3 py-2 d-inline-flex align-items-center gap-1" style="background-color:#e63946;">
+                <span class="material-symbols-outlined" style="font-size:1.1rem;">@turnoIcone</span>
+                @turnoAtual
+            </span>
+        }
+        else
+        {
+            <p class="lead text-secondary">Estamos fechados no momento</p>
+        }
     </div>
 </div>
 
 <div class="container py-5">
-    @if (cardapio == null)
+    @if (!dentroDoHorario)
+    {
+        <div class="text-center py-4">
+            <span class="material-symbols-outlined" style="font-size:4rem; color:#e63946;">schedule</span>
+            <h4 class="mt-3 fw-bold">Fora do horário de atendimento</h4>
+            <p class="text-muted mt-2 mb-4">Voltamos em breve! Confira nossos horários de funcionamento:</p>
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                <div class="card border-0 shadow-sm px-5 py-4 text-center">
+                    <span class="material-symbols-outlined mb-2" style="font-size:2.5rem; color:#e63946;">partly_cloudy_day</span>
+                    <div class="fw-bold fs-5">Almoço</div>
+                    <div class="text-muted mt-1">11h às 13h</div>
+                </div>
+                <div class="card border-0 shadow-sm px-5 py-4 text-center">
+                    <span class="material-symbols-outlined mb-2" style="font-size:2.5rem; color:#e63946;">nightlight</span>
+                    <div class="fw-bold fs-5">Jantar</div>
+                    <div class="text-muted mt-1">19h às 22h</div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (cardapio == null)
     {
         <div class="text-center py-5">
             <div class="spinner-border text-danger" role="status"></div>
@@ -28,9 +56,22 @@
     }
     else if (!cardapio.Itens.Any())
     {
-        <div class="text-center py-5">
-            <span class="material-symbols-outlined" style="font-size:4rem;">restaurant</span>
-            <h4 class="mt-3 text-muted">Nenhum prato disponível neste turno.</h4>
+        <div class="text-center py-4">
+            <span class="material-symbols-outlined" style="font-size:4rem; color:#e63946;">schedule</span>
+            <h4 class="mt-3 fw-bold">Cardápio indisponível no momento</h4>
+            <p class="text-muted mt-2 mb-4">Nossos horários de atendimento:</p>
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                <div class="card border-0 shadow-sm px-5 py-4 text-center">
+                    <span class="material-symbols-outlined mb-2" style="font-size:2.5rem; color:#e63946;">partly_cloudy_day</span>
+                    <div class="fw-bold fs-5">Almoço</div>
+                    <div class="text-muted mt-1">11h às 13h</div>
+                </div>
+                <div class="card border-0 shadow-sm px-5 py-4 text-center">
+                    <span class="material-symbols-outlined mb-2" style="font-size:2.5rem; color:#e63946;">nightlight</span>
+                    <div class="fw-bold fs-5">Jantar</div>
+                    <div class="text-muted mt-1">19h às 22h</div>
+                </div>
+            </div>
         </div>
     }
     else
@@ -88,10 +129,11 @@
     private Cardapio? cardapio;
     private string turnoAtual = "";
     private string turnoIcone = "";
+    private bool dentroDoHorario;
 
     protected override async Task OnInitializedAsync()
     {
-        var turno = ObterTurnoAtual();
+        var turno = ObterTurnoAtual(out dentroDoHorario);
         (turnoIcone, turnoAtual) = turno switch
         {
             Turno.Almoco => ("partly_cloudy_day", "Almoço"),
@@ -99,17 +141,23 @@
             _ => ("nightlight", "Jantar")
         };
 
-        cardapio = await Db.Cardapios
-            .Include(c => c.Itens)
-            .ThenInclude(i => i.Prato)
-            .FirstOrDefaultAsync(c => c.Data.Date == DateTime.Today && c.Turno == turno);
+        if (dentroDoHorario)
+        {
+            cardapio = await Db.Cardapios
+                .Include(c => c.Itens)
+                .ThenInclude(i => i.Prato)
+                .FirstOrDefaultAsync(c => c.Data.Date == DateTime.Today && c.Turno == turno);
+        }
     }
 
-    private Turno ObterTurnoAtual()
+    private Turno ObterTurnoAtual(out bool dentro)
     {
-        var hora = DateTime.Now.Hour;
-        if (hora >= 11 && hora < 13) return Turno.Almoco;
-        if (hora >= 13 && hora < 18) return Turno.Jantar;
+        var tz = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time") : TimeZoneInfo.FindSystemTimeZoneById("America/Araguaina");
+        
+        var hora = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Hour;
+        if (hora >= 11 && hora < 13) { dentro = true; return Turno.Almoco; }
+        if (hora >= 19 && hora < 22) { dentro = true; return Turno.Jantar; }
+        dentro = false;
         return Turno.Jantar;
     }
 }

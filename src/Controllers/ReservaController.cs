@@ -68,8 +68,22 @@ namespace WebApplication1.Controllers
             if (horarioFim != default && horarioInicio != default && horarioFim <= horarioInicio)
                 ModelState.AddModelError("HoraFim", "O horário de fim deve ser posterior ao de início.");
 
-            if (horarioInicio != default && horarioInicio.Hour < 18)
-                ModelState.AddModelError("HoraInicio", "Reservas só podem ser feitas para o jantar (a partir das 18h).");
+            if (horarioInicio != default)
+            {
+                var h = horarioInicio.Hour;
+                bool eJantar = h >= 19 && h < 22;
+                if (!eJantar)
+                    ModelState.AddModelError("HoraInicio", "Reservas só podem ser feitas para o jantar (19h–22h).");
+
+                if (horarioInicio.Date != DateTime.Today)
+                    ModelState.AddModelError("HoraInicio", "Reservas só podem ser feitas para o dia atual.");
+                else
+                {
+                    var antecedenciaMinima = horarioInicio.AddHours(-2);
+                    if (DateTime.Now > antecedenciaMinima)
+                        ModelState.AddModelError("HoraInicio", $"Reservas devem ser feitas com pelo menos 2 horas de antecedência (limite: {antecedenciaMinima:HH:mm}).");
+                }
+            }
 
             Guid? usuarioId = vm.UsuarioId;
             if (usuarioId == null && !string.IsNullOrWhiteSpace(vm.UsuarioCpf))

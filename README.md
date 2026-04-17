@@ -1,4 +1,13 @@
-# Tópicos 3 - a1 - Docker Setup
+
+
+# Tópicos 3 - a1 
+
+Trabalho desenvolvido para a matéria de Tópicos em Programação 3 do curso de Sistemas de Informação da UNITINS.
+Trabalho desenvolvido por:
+- Alisson de Oliveira Lima
+- Ana Paula Gomes Miranda
+
+# Docker Setup
 
 Este projeto roda localmente usando Docker e Docker Compose, com SQL Server (Express ou Azure SQL Edge).
 
@@ -14,6 +23,11 @@ Este projeto roda localmente usando Docker e Docker Compose, com SQL Server (Exp
 
 ```bash
 docker compose up --build
+```
+
+> Observação: devido a diferença de formatos entre o windows e o linux, pode haver um erro para o docker executar o shell script do Entrypoint, caso ocorra, execute o seguinte comando dentro da raiz do projeto:
+```bash
+(Get-Content entrypoint.sh -Raw) -replace "`r`n", "`n" | Set-Content entrypoint.sh -NoNewline
 ```
 
 3. Aguarde alguns instantes até que:
