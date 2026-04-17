@@ -25,7 +25,7 @@ Este projeto roda localmente usando Docker e Docker Compose, com SQL Server (Exp
 docker compose up --build
 ```
 
-> Observação: devido a diferença de formatos entre o windows e o linux, pode haver um erro para o docker executar o shell script do Entrypoint, caso ocorra, execute o seguinte comando dentro da raiz do projeto e rode novamente:
+> Observação: devido a diferença de formatos entre o windows e o linux, pode haver um erro para o docker executar o shell script do Entrypoint, caso ocorra, execute o seguinte comando dentro da raiz do projeto e execute o projeto novamente:
 ```bash
 (Get-Content entrypoint.sh -Raw) -replace "`r`n", "`n" | Set-Content entrypoint.sh -NoNewline
 ```
