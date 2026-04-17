@@ -4,8 +4,8 @@
 
 Trabalho desenvolvido para a matéria de Tópicos em Programação 3 do curso de Sistemas de Informação da UNITINS.
 Trabalho desenvolvido por:
-- Alisson de Oliveira Lima
-- Ana Paula Gomes Miranda
+- [Alisson de Oliveira Lima](https://github.com/alissonlima086)
+- [Ana Paula Gomes Miranda](https://github.com/anapaula020)
 
 # Docker Setup
 
@@ -57,3 +57,25 @@ docker compose down
 ```bash
 docker compose down -v
 ```
+
+
+# Estrutura do projeto
+
+Para dar inicio ao desenvolvimento, foi desenvolvido um diagrama de classes UML para nos auxiliar na compreensão do problema.
+
+<p align="center">
+  <img src="./docs/uml-tp3.png" alt="UML do projeto" width="600"/>
+</p>
+
+Eventualmente o código foi alterado conforme os requisitos do sistema iam ficando mais claros, mas a base principal continuou a do modelo inicial.
+
+## Stack
+
+| Ferramenta | Função |
+|---|---|
+| [.NET 8](https://dotnet.microsoft.com/) | Plataforma principal para desenvolvimento da aplicação |
+| [ASP.NET Core](https://learn.microsoft.com/aspnet/core) | Framework para construção da aplicação web e APIs |
+| [Blazor Server](https://learn.microsoft.com/aspnet/core/blazor) | Framework para construção da interface interativa no servidor |
+| [Entity Framework Core](https://learn.microsoft.com/ef/core) | ORM para acesso e manipulação do banco de dados |
+| [SQL Server](https://www.microsoft.com/sql-server) | Sistema de gerenciamento de banco de dados relacional |
+| [ASP.NET Core Identity](https://learn.microsoft.com/aspnet/core/security/authentication/identity) | Sistema de autenticação e gerenciamento de usuários |
