@@ -10,6 +10,7 @@
 @inject UserManager<Usuario> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
+@using System.Runtime.InteropServices;
 
 <PageTitle>Realizar Reserva</PageTitle>
 
@@ -19,7 +20,10 @@
             <span class="material-symbols-outlined align-middle me-2" style="color:#e63946;">event_seat</span>
             Realizar Reserva
         </h2>
-        <p class="text-secondary mb-0 mt-1">Reservas disponíveis apenas para o jantar (a partir das 18h)</p>
+        <p class="text-secondary mb-0 mt-1">
+            Jantar: 19h às 22h<br/>
+            <small>Reservas somente no mesmo dia, com até 2h de antecedência do início do atendimento</small>
+        </p>
     </div>
 </div>
 
@@ -33,7 +37,20 @@
         </div>
     }
 
-    @if (sucesso)
+    @if (!dentroDoHorario)
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined" style="font-size:4rem; color:#e63946;">schedule</span>
+            <h4 class="mt-3 fw-bold">Fora do horário de reservas</h4>
+            <p class="text-muted mt-2 mb-4">Reservas para o jantar só podem ser feitas das <strong>17h às 19h</strong> (até 2h antes da abertura).</p>
+            <div class="card border-0 shadow-sm d-inline-block px-5 py-4 text-center">
+                <span class="material-symbols-outlined mb-2" style="font-size:2.5rem; color:#e63946;">nightlight</span>
+                <div class="fw-bold fs-5">Jantar</div>
+                <div class="text-muted mt-1">19h às 22h</div>
+            </div>
+        </div>
+    }
+    else if (sucesso)
     {
         <div class="text-center py-4">
             <span class="material-symbols-outlined" style="font-size:4rem; color:#16a34a;">event_available</span>
@@ -98,7 +115,8 @@
                     {
                         <div class="alert alert-info py-2 small d-flex align-items-center gap-2 mb-0">
                             <span class="material-symbols-outlined" style="font-size:1rem;">info</span>
-                            Preencha data e horarios validos (jantar a partir das 18h) para ver a disponibilidade.
+                            Preencha data e horários válidos. Jantar: 19h–22h.<br/>
+                            Reservas somente no mesmo dia com até 2h de antecedência.
                         </div>
                     }
                     else if (todasMesas == null)
@@ -182,11 +200,12 @@
 
 @code {
     private Guid usuarioId;
-    private DateTime data = DateTime.Today.AddDays(1);
+    private DateTime data = DateTime.Today;
     private string horaInicio = "19:00";
     private string horaFim = "21:00";
     private int numeroPessoas = 2;
     private Guid mesaId = Guid.Empty;
+    private bool dentroDoHorario;
 
     private List<Mesa>? todasMesas;
     private List<Guid> mesasOcupadas = new();
@@ -200,11 +219,20 @@
 
     private System.Threading.CancellationTokenSource? _debounce;
 
-    private bool filtroValido =>
-        TimeSpan.TryParse(horaInicio, out var i) &&
-        TimeSpan.TryParse(horaFim, out var f) &&
-        (data.Date + i).Hour >= 18 &&
-        f > i;
+    private bool filtroValido
+    {
+        get
+        {
+            if (!TimeSpan.TryParse(horaInicio, out var i) || !TimeSpan.TryParse(horaFim, out var f) || f <= i)
+                return false;
+            var h = i.Hours;
+            bool turnoOk = h >= 19 && h < 22;
+            if (!turnoOk) return false;
+            if (data.Date != DateTime.Today) return false;
+            var inicioTurno = data.Date.AddHours(19);
+            return Agora() <= inicioTurno.AddHours(-2);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -218,6 +246,11 @@
         var usuario = await UserManager.GetUserAsync(authState.User);
         if (usuario != null)
             usuarioId = usuario.Id;
+
+        var agora = Agora();
+        dentroDoHorario = agora.Hour >= 17 && agora.Hour < 19;
+
+        if (!dentroDoHorario) return;
 
         todasMesas = await Db.Mesas.OrderBy(m => m.Numero).ToListAsync();
         await AtualizarDisponibilidade();
@@ -319,8 +352,14 @@
         var inicio = data.Date + tsI;
         var fim = data.Date + tsF;
 
-        if (inicio.Hour < 18) { mensagem = "Reservas so a partir das 18h."; erro = true; return; }
         if (fim <= inicio)    { mensagem = "Horario de fim deve ser apos o inicio."; erro = true; return; }
+
+        var h = inicio.Hour;
+        var inicioTurno = data.Date.AddHours(19);
+        bool turnoValido = h >= 19 && h < 22;
+        if (!turnoValido) { mensagem = "Reservas apenas para o jantar (19h–22h)."; erro = true; return; }
+        if (inicio.Date != DateTime.Today) { mensagem = "Reservas apenas para o dia atual."; erro = true; return; }
+        if (Agora() > inicioTurno.AddHours(-2)) { mensagem = $"Prazo encerrado. Reservas com até 2h de antecedência (limite: {inicioTurno.AddHours(-2):HH:mm})."; erro = true; return; }
         if (mesaId == Guid.Empty) { mensagem = "Selecione uma mesa."; erro = true; return; }
         if (numeroPessoas < 1)    { mensagem = "Informe o numero de pessoas."; erro = true; return; }
 
@@ -376,10 +415,16 @@
         mensagem = "";
         erroMesa = "";
         mesaId = Guid.Empty;
-        data = DateTime.Today.AddDays(1);
+        data = DateTime.Today;
         horaInicio = "19:00";
         horaFim = "21:00";
         numeroPessoas = 2;
         mesasOcupadas.Clear();
+    }
+
+    private static DateTime Agora()
+    {
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Araguaina");
+        return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
     }
 }

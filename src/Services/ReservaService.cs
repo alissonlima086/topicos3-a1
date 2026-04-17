@@ -67,8 +67,19 @@ namespace WebApplication1.Services
         public async Task<(Reserva? reserva, string? erro)> CriarAsync(Reserva reserva)
         {
             var hora = reserva.HorarioInicio.Hour;
-            if (hora < 18)
-                return (null, "Reservas só podem ser feitas para o jantar (a partir das 18h).");
+            var minuto = reserva.HorarioInicio.Minute;
+
+            bool eJantar = hora >= 19 && hora < 22;
+            if (!eJantar)
+                return (null, "Reservas só podem ser feitas para o jantar (19h–22h).");
+
+            var agora = DateTime.Now;
+            if (reserva.HorarioInicio.Date != agora.Date)
+                return (null, "Reservas só podem ser feitas para o dia atual.");
+
+            var antecedenciaMinima = reserva.HorarioInicio.AddHours(-2);
+            if (agora > antecedenciaMinima)
+                return (null, $"Reservas devem ser feitas com pelo menos 2 horas de antecedência. Horário limite para este turno: {antecedenciaMinima:HH:mm}.");
 
             var mesaExiste = await _context.Mesas.AnyAsync(m => m.Id == reserva.MesaId);
             if (!mesaExiste)
